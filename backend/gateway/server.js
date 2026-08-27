@@ -14,6 +14,8 @@ const networkRoutes = require('./routes/network');
 const codeRoutes = require('./routes/code');
 const scanRepoRoutes = require('./routes/scanRepo');
 const dastRoutes = require('./routes/dast');
+const reportRoutes = require('./routes/report');
+const notificationRoutes = require('./routes/notification');
 const { swaggerSpec, swaggerUiServe, swaggerUiSetup } = require('./swagger');
 const { TriageEngine } = require('../shared/triage/engine');
 
@@ -60,6 +62,8 @@ app.use('/api/network', apiKeyAuth, networkRoutes(NETWORK_SERVICE, triageEngine,
 app.use('/api/code', apiKeyAuth, codeRoutes(CODE_SERVICE, triageEngine, wss));
 app.use('/api/code', apiKeyAuth, scanRepoRoutes(CODE_SERVICE, triageEngine, wss));
 app.use('/api/dast', apiKeyAuth, dastRoutes(DAST_SERVICE, triageEngine, wss));
+app.use('/api/reports', apiKeyAuth, reportRoutes());
+app.use('/api/notifications', apiKeyAuth, notificationRoutes());
 
 wss.on('connection', (ws, req) => {
   log.info({ requestId: req.id }, 'Client connected to WebSocket');

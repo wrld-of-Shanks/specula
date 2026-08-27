@@ -32,4 +32,20 @@ const autoFixLimiter = rateLimit({
   message: { error: 'Auto-fix rate limit exceeded (max 5 per hour). Please try again later.' }
 });
 
-module.exports = { defaultLimiter, scanLimiter, dastLimiter, autoFixLimiter };
+const reportLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Report rate limit exceeded (max 5 per hour). Please try again later.' }
+});
+
+const notificationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Notification rate limit exceeded (max 10 per hour). Please try again later.' }
+});
+
+module.exports = { defaultLimiter, scanLimiter, dastLimiter, autoFixLimiter, reportLimiter, notificationLimiter };

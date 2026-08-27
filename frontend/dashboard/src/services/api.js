@@ -86,4 +86,40 @@ export const autoFixFinding = async (jobId, findingId) => {
   return response.data;
 };
 
+export const generateReport = async (jobId, opts = {}) => {
+  const response = await api.post('/api/reports/generate', {
+    job_id: jobId,
+    format: 'pdf',
+    include_fixes: opts.includeFixes !== false,
+    ...(opts.timeRange ? { time_range: opts.timeRange } : {})
+  });
+  return response.data;
+};
+
+export const sendNotification = async (jobId, channels = ['slack', 'email'], recipients = []) => {
+  const response = await api.post('/api/notifications/send', {
+    job_id: jobId,
+    channels,
+    ...(recipients.length ? { recipients } : {})
+  });
+  return response.data;
+};
+
+export const downloadReport = async (reportUrl) => {
+  const response = await api.get(reportUrl, { responseType: 'blob' });
+  const disposition = response.headers['content-disposition'] || '';
+  let filename = 'report.pdf';
+  const match = disposition.match(/filename="?([^"]+)"?/);
+  if (match) filename = match[1];
+  const blobURL = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = blobURL;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(blobURL);
+  return filename;
+};
+
 export default api;

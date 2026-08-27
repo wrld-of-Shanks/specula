@@ -25,6 +25,8 @@ const options = {
       { name: 'Network (NIDS)', description: 'Behavioral network-traffic analysis' },
       { name: 'DAST', description: 'Dynamic application security testing' },
       { name: 'Events', description: 'Scan findings / event feed' },
+      { name: 'Reports', description: 'PDF report generation & download' },
+      { name: 'Notifications', description: 'Slack / email security alerts' },
       { name: 'WebSocket', description: 'Real-time event stream' }
     ],
     components: {

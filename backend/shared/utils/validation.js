@@ -73,6 +73,29 @@ const autoFixSchema = Joi.object({
     .description('MongoDB id of the scan_repo Event (finding) to fix')
 });
 
+const reportGenerateSchema = Joi.object({
+  job_id: Joi.string().hex().length(24).optional()
+    .description('Scan job id (omit to generate a time-range report)'),
+  format: Joi.string().valid('pdf').default('pdf'),
+  include_fixes: Joi.boolean().default(true),
+  time_range: Joi.string().valid('24h', '7d', '30d').optional()
+    .description('Aggregate findings from this period instead of a single job'),
+  start: Joi.date().iso().optional().description('Custom range start (ISO date)'),
+  end: Joi.date().iso().optional().description('Custom range end (ISO date)')
+}).or('job_id', 'time_range', 'start');
+
+const sendNotificationSchema = Joi.object({
+  job_id: Joi.string().hex().length(24).required(),
+  channels: Joi.array().items(
+    Joi.string().valid('slack', 'email')
+  ).min(1).max(2).required().description('Notification channels to use'),
+  recipients: Joi.array().items(
+    Joi.string().max(253)
+  ).min(1).max(20).optional().description(
+    'Slack channel(s) or email address(es). Defaults to SLACK_CHANNEL / NOTIFICATION_EMAIL_RECIPIENTS.'
+  )
+});
+
 function validate(schema, source = 'body') {
   return (req, res, next) => {
     const data = source === 'query' ? req.query : req[source];
@@ -94,6 +117,8 @@ module.exports = {
   authorizedTargetSchema,
   paginationSchema,
   autoFixSchema,
+  reportGenerateSchema,
+  sendNotificationSchema,
   validate,
   MAX_CODE_LENGTH,
   MAX_URL_LENGTH

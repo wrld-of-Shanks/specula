@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { GitBranch, Search, AlertTriangle, CheckCircle, Clock, FileCode, ExternalLink } from 'lucide-react';
-import { scanRepo, getScanJobs, getScanJob, autoFixFinding } from '../services/api';
+import { GitBranch, Search, AlertTriangle, CheckCircle, Clock, FileCode, ExternalLink, FileText, Send, Download } from 'lucide-react';
+import { scanRepo, getScanJobs, getScanJob, autoFixFinding, generateReport, sendNotification, downloadReport } from '../services/api';
 import FindingCard from './FindingCard';
 
 const RepoScans = () => {
@@ -13,6 +13,11 @@ const RepoScans = () => {
   const [error, setError] = useState(null);
   const [fixingId, setFixingId] = useState(null);
   const [fixResult, setFixResult] = useState(null);
+  const [reporting, setReporting] = useState(false);
+  const [reportResult, setReportResult] = useState(null);
+  const [notifying, setNotifying] = useState(false);
+  const [notifyResult, setNotifyResult] = useState(null);
+  const [notifyChannels, setNotifyChannels] = useState({ slack: false, email: false });
 
   useEffect(() => {
     loadJobs();
@@ -66,6 +71,51 @@ const RepoScans = () => {
       setFixResult({ error: err.response?.data?.error || err.message || 'Auto-fix failed' });
     } finally {
       setFixingId(null);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    if (!selectedJob) return;
+    setReporting(true);
+    setReportResult(null);
+    try {
+      const result = await generateReport(selectedJob, { includeFixes: true });
+      setReportResult({ success: true, download_link: result.download_link, report_url: result.report_url, message: result.message });
+    } catch (err) {
+      setReportResult({ error: err.response?.data?.error || err.message || 'Report generation failed' });
+    } finally {
+      setReporting(false);
+    }
+  };
+
+  const handleDownloadReport = async (reportUrl) => {
+    try {
+      await downloadReport(reportUrl);
+    } catch (err) {
+      setReportResult({ error: err.response?.data?.error || err.message || 'Download failed' });
+    }
+  };
+
+  const toggleNotifyChannel = (channel) => {
+    setNotifyChannels(prev => ({ ...prev, [channel]: !prev[channel] }));
+  };
+
+  const handleSendNotification = async () => {
+    if (!selectedJob) return;
+    const channels = Object.keys(notifyChannels).filter(c => notifyChannels[c]);
+    if (channels.length === 0) {
+      setNotifyResult({ error: 'Select at least one notification channel' });
+      return;
+    }
+    setNotifying(true);
+    setNotifyResult(null);
+    try {
+      const result = await sendNotification(selectedJob, channels);
+      setNotifyResult(result);
+    } catch (err) {
+      setNotifyResult({ error: err.response?.data?.error || err.message || 'Notification send failed' });
+    } finally {
+      setNotifying(false);
     }
   };
 
@@ -145,6 +195,45 @@ const RepoScans = () => {
               {fixResult.error && <p className="error-text">{fixResult.error}</p>}
             </div>
           )}
+
+          <div className="report-toolbar">
+            <button className="report-btn" onClick={handleGenerateReport} disabled={reporting}>
+              {reporting ? 'Generating...' : <><FileText size={14} /> Generate Report</>}
+            </button>
+            {reportResult && reportResult.success && (
+              <button className="report-btn download" onClick={() => handleDownloadReport(reportResult.report_url)}>
+                <Download size={14} /> Download PDF
+              </button>
+            )}
+          </div>
+          {reportResult && (
+            <div className={`fix-result ${reportResult.error ? 'error' : 'success'}`}>
+              {reportResult.message && <p>{reportResult.message}</p>}
+              {reportResult.error && <p className="error-text">{reportResult.error}</p>}
+            </div>
+          )}
+
+          <div className="notify-toolbar">
+            <span className="notify-label"><Send size={14} /> Notify:</span>
+            <label className="notify-check">
+              <input type="checkbox" checked={notifyChannels.slack} onChange={() => toggleNotifyChannel('slack')} /> Slack
+            </label>
+            <label className="notify-check">
+              <input type="checkbox" checked={notifyChannels.email} onChange={() => toggleNotifyChannel('email')} /> Email
+            </label>
+            <button className="report-btn notify" onClick={handleSendNotification} disabled={notifying}>
+              {notifying ? 'Sending...' : 'Send Notification'}
+            </button>
+          </div>
+          {notifyResult && (
+            <div className={`fix-result ${notifyResult.error ? 'error' : 'success'}`}>
+              {notifyResult.slack_sent && <p>✓ Slack sent</p>}
+              {notifyResult.email_sent && <p>✓ Email sent</p>}
+              {notifyResult.message && <p>{notifyResult.message}</p>}
+              {notifyResult.error && <p className="error-text">{notifyResult.error}</p>}
+            </div>
+          )}
+
           <div className="findings-by-file">
             {Object.entries(jobDetails.findings).map(([filePath, findings]) => (
               <div key={filePath} className="file-group">

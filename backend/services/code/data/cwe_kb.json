@@ -1,0 +1,191 @@
+{
+  "sql_injection": {
+    "cwe": "CWE-89",
+    "name": "SQL Injection",
+    "description": "Improper neutralization of special elements used in an SQL command allows an attacker to modify the intended SQL query and access or modify data.",
+    "severity": "high",
+    "owasp": "A03:2021 - Injection",
+    "remediation": [
+      "Use parameterized queries or prepared statements",
+      "Use stored procedures",
+      "Validate and sanitize user input",
+      "Apply principle of least privilege for database accounts",
+      "Use ORM frameworks that handle parameterization"
+    ],
+    "examples": [
+      "string query = \"SELECT * FROM users WHERE id = \" + userId;",
+      "db.execute(\"DELETE FROM orders WHERE id=\" + orderId);",
+      "const sql = `SELECT * FROM products WHERE name = '${searchTerm}'`;"
+    ],
+    "fix_patterns": [
+      "Use ? placeholders for parameters",
+      "Use parameterized query methods",
+      "Validate input against whitelist",
+      "Escape special characters"
+    ],
+    "detection_patterns": [
+      "SELECT.*FROM.*\\+",
+      "INSERT.*INTO.*\\+",
+      "UPDATE.*SET.*\\+",
+      "DELETE.*FROM.*\\+",
+      "`SELECT.*\\$\\{`"
+    ]
+  },
+  "xss": {
+    "cwe": "CWE-79",
+    "name": "Cross-site Scripting (XSS)",
+    "description": "Improper neutralization of input during web page generation allows attackers to inject malicious scripts.",
+    "severity": "medium",
+    "owasp": "A03:2021 - Injection",
+    "remediation": [
+      "Encode output data",
+      "Validate and sanitize input",
+      "Use Content Security Policy (CSP)",
+      "Use HTTPOnly cookies",
+      "Use textContent instead of innerHTML"
+    ],
+    "examples": [
+      "document.innerHTML = userInput;",
+      "response.send(`<div>${userInput}</div>`);",
+      "element.outerHTML = req.body.content;"
+    ],
+    "fix_patterns": [
+      "Escape HTML entities",
+      "Use textContent instead of innerHTML",
+      "Sanitize with DOMPurify or similar",
+      "Use frameworks that auto-escape by default"
+    ],
+    "detection_patterns": [
+      "\\.innerHTML\\s*=",
+      "\\.outerHTML\\s*=",
+      "document\\.write\\(",
+      "insertAdjacentHTML\\("
+    ]
+  },
+  "hardcoded_credentials": {
+    "cwe": "CWE-798",
+    "name": "Use of Hard-coded Credentials",
+    "description": "Product contains hard-coded credentials such as a password, cryptographic key, or other secret value.",
+    "severity": "critical",
+    "owasp": "A07:2021 - Identification and Authentication Failures",
+    "remediation": [
+      "Store credentials in environment variables",
+      "Use a secrets manager",
+      "Use credential vaults",
+      "Implement proper key rotation",
+      "Never commit credentials to version control"
+    ],
+    "examples": [
+      "const password = \"admin123\";",
+      "DB_PASSWORD = \"secret_pass\"",
+      "API_KEY = \"sk-1234567890abcdef\""
+    ],
+    "fix_patterns": [
+      "Move to environment variables",
+      "Use process.env or config files",
+      "Use secret management services",
+      "Use .env files (not committed)"
+    ],
+    "detection_patterns": [
+      "password\\s*=\\s*[\"'][^\"']+[\"']",
+      "secret\\s*=\\s*[\"'][^\"']+[\"']",
+      "api_key\\s*=\\s*[\"'][^\"']+[\"']",
+      "token\\s*=\\s*[\"'][^\"']+[\"']"
+    ]
+  },
+  "command_injection": {
+    "cwe": "CWE-78",
+    "name": "OS Command Injection",
+    "description": "Improper neutralization of special elements used in an OS command allows attackers to execute arbitrary commands.",
+    "severity": "critical",
+    "owasp": "A03:2021 - Injection",
+    "remediation": [
+      "Avoid calling OS commands directly",
+      "Use language-level APIs instead",
+      "Validate and sanitize input",
+      "Use parameterized APIs",
+      "Apply principle of least privilege"
+    ],
+    "examples": [
+      "exec(\"cat \" + filename);",
+      "system(\"ping \" + userInput);",
+      "child_process.exec(`ls ${dir}`);"
+    ],
+    "fix_patterns": [
+      "Use subprocess with argument list",
+      "Validate input against whitelist",
+      "Use built-in language functions",
+      "Use safe exec methods with args array"
+    ],
+    "detection_patterns": [
+      "exec\\(",
+      "system\\(",
+      "popen\\(",
+      "child_process\\.exec\\("
+    ]
+  },
+  "path_traversal": {
+    "cwe": "CWE-22",
+    "name": "Path Traversal",
+    "description": "Improper limitation of a pathname to a restricted directory allows attackers to access files outside the intended directory.",
+    "severity": "high",
+    "owasp": "A01:2021 - Broken Access Control",
+    "remediation": [
+      "Validate and normalize file paths",
+      "Use chroot or jail environments",
+      "Implement proper access controls",
+      "Use allowlisting for file access",
+      "Resolve paths and verify they're within allowed directory"
+    ],
+    "examples": [
+      "readFile(\"/data/\" + userPath);",
+      "fs.readFileSync(baseDir + \"/\" + filename);",
+      "open(userInput, 'r');"
+    ],
+    "fix_patterns": [
+      "Resolve and validate path is within allowed directory",
+      "Use path.normalize and check prefix",
+      "Implement allowlist for accessible paths",
+      "Use path.resolve with base directory"
+    ],
+    "detection_patterns": [
+      "readFile\\(",
+      "readFileSync\\(",
+      "fs\\.readFile\\(",
+      "open\\(.*\\+"
+    ]
+  },
+  "not_vulnerable": {
+    "cwe": "N/A",
+    "name": "Not Vulnerable",
+    "description": "No vulnerability detected in the code.",
+    "severity": "info",
+    "owasp": "N/A",
+    "remediation": [],
+    "examples": [],
+    "fix_patterns": [],
+    "detection_patterns": []
+  },
+  "insecure_deserialization": {
+    "cwe": "CWE-502",
+    "name": "Insecure Deserialization",
+    "description": "Deserializing untrusted data can allow an attacker to execute arbitrary code.",
+    "severity": "critical",
+    "owasp": "A08:2021 - Software and Data Integrity Failures",
+    "remediation": [
+      "Never deserialize untrusted data with pickle",
+      "Use safe formats like JSON",
+      "If pickle is required, restrict deserializable classes",
+      "Use yaml.safe_load() instead of yaml.load()"
+    ],
+    "examples": [
+      "pickle.loads(user_data)",
+      "yaml.load(raw_config)"
+    ],
+    "fix_patterns": [
+      "Use JSON for serialization",
+      "Use yaml.safe_load()",
+      "Implement restricted unpickler"
+    ]
+  }
+}

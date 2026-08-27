@@ -1,0 +1,115 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: specula-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:?MONGO_USERNAME is required. Copy .env.example to .env and set it.}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?MONGO_PASSWORD is required. Copy .env.example to .env and set it.}
+      MONGO_INITDB_DATABASE: specula
+    volumes:
+      - mongo-data:/data/db
+    # MongoDB is NOT exposed to the host; it is reachable only from within
+    # the specula-net bridge network.
+    networks:
+      - specula-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "-u", "${MONGO_USERNAME}", "-p", "${MONGO_PASSWORD}", "--authenticationDatabase", "admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: specula-gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/specula?authSource=admin
+      - NETWORK_SERVICE=http://network:5001
+      - CODE_SERVICE=http://code:5002
+      - DAST_SERVICE=http://dast:5003
+      - API_KEY=${API_KEY:?API_KEY is required. Copy .env.example to .env and set a strong value.}
+      - CORS_ORIGINS=http://localhost:3001
+    networks:
+      - specula-net
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  network:
+    build:
+      context: .
+      dockerfile: Dockerfile.network
+    container_name: specula-network
+    restart: unless-stopped
+    networks:
+      - specula-net
+
+  code:
+    build:
+      context: .
+      dockerfile: Dockerfile.code
+    container_name: specula-code
+    restart: unless-stopped
+    networks:
+      - specula-net
+
+  dast:
+    build:
+      context: .
+      dockerfile: Dockerfile.dast
+    container_name: specula-dast
+    restart: unless-stopped
+    environment:
+      - MONGO_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/specula?authSource=admin
+    networks:
+      - specula-net
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: specula-dashboard
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - SPECULA_API_KEY=${API_KEY}
+    networks:
+      - specula-net
+    depends_on:
+      - gateway
+
+  # ─── Evaluation targets (DAST benchmark) ─────────────────────────────────
+  # Deliberately-vulnerable apps used by scripts/evaluate_dast.py. Ports avoid
+  # collisions: DVWA 4280, Juice Shop 3999, WebGoat 8082/8083, bWAPP 4281,
+  # Mutillidae 4282.
+  bwapp:
+    image: raesene/bwapp:latest
+    ports:
+      - "4281:80"
+    restart: unless-stopped
+    networks:
+      - specula-net
+
+  mutillidae:
+    image: citizenstig/nowasp:latest
+    ports:
+      - "4282:80"
+    restart: unless-stopped
+    networks:
+      - specula-net
+
+networks:
+  specula-net:
+    driver: bridge
+
+volumes:
+  mongo-data:

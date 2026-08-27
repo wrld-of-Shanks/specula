@@ -1,0 +1,171 @@
+{
+  "horus": {
+    "findings": [
+      {
+        "check_type": "missing_csp",
+        "confidence": 1.0,
+        "severity": "medium",
+        "location": ""
+      },
+      {
+        "check_type": "missing_hsts",
+        "confidence": 1.0,
+        "severity": "medium",
+        "location": ""
+      },
+      {
+        "check_type": "exposed_metadata",
+        "confidence": 1.0,
+        "severity": "high",
+        "location": ""
+      },
+      {
+        "check_type": "exposed_metadata",
+        "confidence": 1.0,
+        "severity": "high",
+        "location": ""
+      },
+      {
+        "check_type": "weak_tls",
+        "confidence": 1.0,
+        "severity": "high",
+        "location": ""
+      }
+    ],
+    "raw": {
+      "finding_count": 5,
+      "findings": [
+        {
+          "certainty_type": "confirmed",
+          "check_name": "missing_csp",
+          "explanation": {
+            "certainty_type": "confirmed",
+            "confidence_note": "Confirmed by direct inspection \u2014 CSP header absent in response",
+            "location": "http://host.docker.internal:3999",
+            "reference": {
+              "cwe": "CWE-693",
+              "owasp": "A05:2021 - Security Misconfiguration"
+            },
+            "remediation": {
+              "guidance": "Add a Content-Security-Policy header with appropriate directives. Start with a restrictive policy and relax as needed. Example: \"Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'\"",
+              "suggested_code_fix": null
+            },
+            "what": "The Content Security Policy (CSP) header is not set on responses from http://host.docker.internal:3999. This means no restrictions are placed on what resources the browser can load, scripts it can execute, or origins it can connect to.",
+            "why_it_matters": "Without CSP, the application is more vulnerable to cross-site scripting (XSS) and data injection attacks. An attacker who finds any XSS vector can execute arbitrary JavaScript without CSP blocking the malicious resource."
+          },
+          "severity": "medium"
+        },
+        {
+          "certainty_type": "confirmed",
+          "check_name": "missing_hsts",
+          "explanation": {
+            "certainty_type": "confirmed",
+            "confidence_note": "Confirmed by direct inspection \u2014 HSTS header absent in response",
+            "location": "http://host.docker.internal:3999",
+            "reference": {
+              "cwe": "CWE-319",
+              "owasp": "A02:2021 - Cryptographic Failures"
+            },
+            "remediation": {
+              "guidance": "Add the header: \"Strict-Transport-Security: max-age=63072000; includeSubDomains; preload\". Start with a short max-age for testing, then increase.",
+              "suggested_code_fix": null
+            },
+            "what": "The Strict-Transport-Security (HSTS) header is not set on responses from http://host.docker.internal:3999. Browsers will not enforce HTTPS-only connections for this domain.",
+            "why_it_matters": "Without HSTS, users who type the URL without https:// or follow old bookmarks may connect over plain HTTP, allowing an active network attacker to intercept or modify traffic via downgrade attacks."
+          },
+          "severity": "medium"
+        },
+        {
+          "certainty_type": "confirmed",
+          "check_name": "exposed_metadata",
+          "explanation": {
+            "certainty_type": "confirmed",
+            "confidence_note": "Confirmed by direct inspection \u2014 .env file accessible \u2014 contains environment variables/secrets",
+            "location": "http://host.docker.internal:3999/.env",
+            "reference": {
+              "cwe": "CWE-538",
+              "owasp": "A01:2021 - Broken Access Control"
+            },
+            "remediation": {
+              "guidance": "Block access to sensitive paths at the web server level. For .git: \"RedirectMatch 404 \\.git\" in Apache or \"location ~ /.git { deny all; }\" in Nginx. For .env: serve from outside the web root or block access. Audit git history for leaked secrets.",
+              "suggested_code_fix": null
+            },
+            "what": "A sensitive file is publicly accessible at http://host.docker.internal:3999/.env: .env file accessible \u2014 contains environment variables/secrets. This exposes configuration data, source control metadata, or environment variables.",
+            "why_it_matters": "Exposed .git directories reveal the full source code history including credentials that may have been committed then removed. Exposed .env files contain secrets directly. Exposed robots.txt reveals hidden admin paths."
+          },
+          "severity": "high"
+        },
+        {
+          "certainty_type": "confirmed",
+          "check_name": "exposed_metadata",
+          "explanation": {
+            "certainty_type": "confirmed",
+            "confidence_note": "Confirmed by direct inspection \u2014 robots.txt reveals hidden admin paths via Disallow directives",
+            "location": "http://host.docker.internal:3999/robots.txt",
+            "reference": {
+              "cwe": "CWE-538",
+              "owasp": "A01:2021 - Broken Access Control"
+            },
+            "remediation": {
+              "guidance": "Block access to sensitive paths at the web server level. For .git: \"RedirectMatch 404 \\.git\" in Apache or \"location ~ /.git { deny all; }\" in Nginx. For .env: serve from outside the web root or block access. Audit git history for leaked secrets.",
+              "suggested_code_fix": null
+            },
+            "what": "A sensitive file is publicly accessible at http://host.docker.internal:3999/robots.txt: robots.txt reveals hidden admin paths via Disallow directives. This exposes configuration data, source control metadata, or environment variables.",
+            "why_it_matters": "Exposed .git directories reveal the full source code history including credentials that may have been committed then removed. Exposed .env files contain secrets directly. Exposed robots.txt reveals hidden admin paths."
+          },
+          "severity": "high"
+        },
+        {
+          "certainty_type": "confirmed",
+          "check_name": "weak_tls",
+          "explanation": {
+            "certainty_type": "confirmed",
+            "confidence_note": "Confirmed by direct inspection \u2014 Site does not use HTTPS \u2014 plain HTTP connection",
+            "location": "http://host.docker.internal:3999",
+            "reference": {
+              "cwe": "CWE-326",
+              "owasp": "A02:2021 - Cryptographic Failures"
+            },
+            "remediation": {
+              "guidance": "Disable TLS 1.0 and 1.1. Use TLS 1.2 or 1.3 only. Obtain a valid certificate from a trusted CA and set up automated renewal. Use tools like Mozilla SSL Configuration Generator for recommended settings.",
+              "suggested_code_fix": null
+            },
+            "what": "The server at http://host.docker.internal:3999 uses a weak or outdated TLS configuration: Site does not use HTTPS \u2014 plain HTTP connection.",
+            "why_it_matters": "Weak TLS protocols (TLS 1.0, 1.1, SSLv3) and expired certificates mean that encrypted connections can be intercepted, decrypted, or are not properly authenticated, allowing man-in-the-middle attacks."
+          },
+          "severity": "high"
+        }
+      ],
+      "mode": "active",
+      "target_url": "http://host.docker.internal:3999"
+    },
+    "metrics": {
+      "target": "OWASP Juice Shop",
+      "tp": 3,
+      "fp": 2,
+      "fn": 6,
+      "precision": 0.6,
+      "recall": 0.3333,
+      "f1": 0.4286,
+      "gt_count": 9,
+      "tool_finding_count": 5,
+      "tp_checks": [
+        "missing_csp",
+        "missing_hsts",
+        "weak_tls"
+      ],
+      "fp_checks": [
+        "exposed_metadata"
+      ],
+      "fn_checks": [
+        "error_disclosure",
+        "exposed_path",
+        "idor_indicator",
+        "sqli_indicator",
+        "xss_reflection"
+      ],
+      "tool": "HORUS DAST",
+      "scan_time_seconds": 0.9
+    }
+  }
+}

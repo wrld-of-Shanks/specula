@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  gateway:
+    name: Gateway tests
+    runs-on: ubuntu-latest
+    env:
+      # Tests set API_KEY themselves, but keep one present to be safe.
+      API_KEY: ci-test-key
+    defaults:
+      run:
+        working-directory: backend/gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/gateway/package-lock.json
+      - run: npm ci
+      - run: npm test -- --runInBand
+
+  python:
+    name: Python tests + coverage
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/services
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dev test dependencies
+        working-directory: .
+        run: pip install -r requirements-dev.txt
+      - name: Run unit tests with coverage
+        working-directory: .
+        run: |
+          python -m pytest -o addopts="" \
+            --cov=rule_classifier --cov=active_scanner --cov-branch \
+            --cov-fail-under=80 backend/services/code/tests backend/services/dast/tests
+      - name: Syntax-check shared scripts
+        working-directory: .
+        run: |
+          for f in scripts/*.py; do python -m py_compile "$f"; done
+
+  triage:
+    name: Triage engine tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run shared triage engine tests with coverage
+        run: |
+          npx --prefix backend/gateway jest --config jest.shared.config.js \
+            --coverage --coverageReporters=text --ci
+
+  compose:
+    name: docker-compose config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate compose file with required env
+        env:
+          MONGO_USERNAME: ci-mongo
+          MONGO_PASSWORD: ci-mongo-pass
+          API_KEY: ci-api-key
+        run: docker compose config --quiet

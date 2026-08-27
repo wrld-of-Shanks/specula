@@ -1,0 +1,6 @@
+# Development/test dependencies for running the Python unit tests locally.
+# Runtime deps are declared per-service in backend/services/*/requirements.txt.
+pytest==8.4.2
+pytest-cov==7.1.0
+requests>=2.31.0
+pymongo>=4.6.0

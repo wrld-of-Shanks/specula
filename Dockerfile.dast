@@ -1,0 +1,23 @@
+FROM python:3.11-slim
+
+# Run as a non-root user with a writable home.
+RUN groupadd -r specula && useradd -r -g specula -m -d /home/specula -s /usr/sbin/nologin specula
+
+WORKDIR /app
+
+COPY backend/services/dast/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY backend/services/dast/ /app/
+
+RUN chown -R specula:specula /app
+
+USER specula
+
+EXPOSE 5003
+
+# Serve with gunicorn (production WSGI server) instead of Flask's dev server.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5003/health')"]
+
+CMD ["gunicorn", "--workers", "2", "--bind", "0.0.0.0:5003", "--timeout", "300", "app:app"]

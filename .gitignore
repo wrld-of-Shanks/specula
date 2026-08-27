@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+**/node_modules/
+__pycache__/
+*.pyc
+venv/
+env/
+
+# Coverage / test artifacts
+.coverage
+.coverage_html/
+.pytest_cache/
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Models and Data
+**/models/weights/
+data/*.csv
+data/*.txt
+data/*.pkl
+data/db/
+data/network/
+data/code/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+shared/node_modules

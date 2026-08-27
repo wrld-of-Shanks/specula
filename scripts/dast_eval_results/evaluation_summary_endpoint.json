@@ -1,0 +1,1064 @@
+{
+  "timestamp": "2026-07-31T22:52:14.008671",
+  "targets": [
+    "dvwa",
+    "juice_shop",
+    "webgoat",
+    "bwapp",
+    "mutillidae"
+  ],
+  "aggregate": {
+    "horus": {
+      "check_type": {
+        "tp": 23,
+        "fp": 5,
+        "fn": 53,
+        "precision": 0.8214,
+        "recall": 0.3026,
+        "f1": 0.4423
+      },
+      "endpoint": {
+        "tp": 23,
+        "fp": 5,
+        "fn": 45,
+        "precision": 0.8214,
+        "recall": 0.3382,
+        "f1": 0.4792
+      }
+    },
+    "zap": {
+      "check_type": {
+        "tp": 21,
+        "fp": 43,
+        "fn": 55,
+        "precision": 0.3281,
+        "recall": 0.2763,
+        "f1": 0.3
+      },
+      "endpoint": {
+        "tp": 16,
+        "fp": 45,
+        "fn": 52,
+        "precision": 0.2623,
+        "recall": 0.2353,
+        "f1": 0.2481
+      }
+    }
+  },
+  "per_target": {
+    "dvwa": {
+      "horus": {
+        "check_type": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 9,
+          "precision": 0.8333,
+          "recall": 0.3571,
+          "f1": 0.5
+        },
+        "endpoint": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 9,
+          "precision": 0.8333,
+          "recall": 0.3571,
+          "f1": 0.5
+        },
+        "endpoint_units": {
+          "tp": [
+            [
+              "missing_csp",
+              "/"
+            ],
+            [
+              "missing_hsts",
+              "/"
+            ],
+            [
+              "missing_xfo",
+              "/"
+            ],
+            [
+              "server_banner_disclosure",
+              "/"
+            ],
+            [
+              "weak_tls",
+              "/"
+            ]
+          ],
+          "fp": [
+            [
+              "exposed_metadata",
+              "/robots.txt"
+            ]
+          ],
+          "fn": [
+            [
+              "error_disclosure",
+              "/vulnerabilities/"
+            ],
+            [
+              "error_disclosure",
+              "/vulnerabilities/exec/"
+            ],
+            [
+              "insecure_cookies",
+              "/"
+            ],
+            [
+              "sqli_indicator",
+              "/login.php"
+            ],
+            [
+              "sqli_indicator",
+              "/vulnerabilities/sqli/"
+            ],
+            [
+              "sqli_indicator",
+              "/vulnerabilities/sqli_blind/"
+            ],
+            [
+              "xss_reflection",
+              "/vulnerabilities/xss_d/"
+            ],
+            [
+              "xss_reflection",
+              "/vulnerabilities/xss_r/"
+            ],
+            [
+              "xss_reflection",
+              "/vulnerabilities/xss_s/"
+            ]
+          ]
+        }
+      },
+      "zap": {
+        "check_type": {
+          "tp": 4,
+          "fp": 6,
+          "fn": 10,
+          "precision": 0.4,
+          "recall": 0.2857,
+          "f1": 0.3333
+        },
+        "endpoint": {
+          "tp": 4,
+          "fp": 6,
+          "fn": 10,
+          "precision": 0.4,
+          "recall": 0.2857,
+          "f1": 0.3333
+        },
+        "endpoint_units": {
+          "tp": [
+            [
+              "insecure_cookies",
+              "/"
+            ],
+            [
+              "missing_csp",
+              "/"
+            ],
+            [
+              "missing_xfo",
+              "/"
+            ],
+            [
+              "server_banner_disclosure",
+              "/"
+            ]
+          ],
+          "fp": [
+            [
+              "info_disclosure",
+              "/sitemap.xml"
+            ],
+            [
+              "missing_xcto",
+              "/robots.txt"
+            ],
+            [
+              "zap_0",
+              "/dvwa"
+            ],
+            [
+              "zap_10104",
+              "/"
+            ],
+            [
+              "zap_10111",
+              "/login.php"
+            ],
+            [
+              "zap_10112",
+              "/"
+            ]
+          ],
+          "fn": [
+            [
+              "error_disclosure",
+              "/vulnerabilities/"
+            ],
+            [
+              "error_disclosure",
+              "/vulnerabilities/exec/"
+            ],
+            [
+              "missing_hsts",
+              "/"
+            ],
+            [
+              "sqli_indicator",
+              "/login.php"
+            ],
+            [
+              "sqli_indicator",
+              "/vulnerabilities/sqli/"
+            ],
+            [
+              "sqli_indicator",
+              "/vulnerabilities/sqli_blind/"
+            ],
+            [
+              "weak_tls",
+              "/"
+            ],
+            [
+              "xss_reflection",
+              "/vulnerabilities/xss_d/"
+            ],
+            [
+              "xss_reflection",
+              "/vulnerabilities/xss_r/"
+            ],
+            [
+              "xss_reflection",
+              "/vulnerabilities/xss_s/"
+            ]
+          ]
+        }
+      }
+    },
+    "juice_shop": {
+      "horus": {
+        "check_type": {
+          "tp": 3,
+          "fp": 1,
+          "fn": 12,
+          "precision": 0.75,
+          "recall": 0.2,
+          "f1": 0.3158
+        },
+        "endpoint": {
+          "tp": 3,
+          "fp": 1,
+          "fn": 11,
+          "precision": 0.75,
+          "recall": 0.2143,
+          "f1": 0.3333
+        },
+        "endpoint_units": {
+          "tp": [
+            [
+              "missing_csp",
+              "/"
+            ],
+            [
+              "missing_hsts",
+              "/"
+            ],
+            [
+              "weak_tls",
+              "/"
+            ]
+          ],
+          "fp": [
+            [
+              "exposed_metadata",
+              "/.env"
+            ]
+          ],
+          "fn": [
+            [
+              "error_disclosure",
+              "/rest/"
+            ],
+            [
+              "error_disclosure",
+              "/rest/admin/login"
+            ],
+            [
+              "exposed_path",
+              "/api/"
+            ],
+            [
+              "exposed_path",
+              "/ftp/"
+            ],
+            [
+              "exposed_path",
+              "/robots.txt"
+            ],
+            [
+              "idor_indicator",
+              "/api/Feedbacks/"
+            ],
+            [
+              "idor_indicator",
+              "/rest/basket/"
+            ],
+            [
+              "sqli_indicator",
+              "/rest/products/reviews"
+            ],
+            [
+              "sqli_indicator",
+              "/rest/products/search"
+            ],
+            [
+              "xss_reflection",
+              "/api/Feedbacks"
+            ],
+            [
+              "xss_reflection",
+              "/rest/products/search"
+            ]
+          ]
+        }
+      },
+      "zap": {
+        "check_type": {
+          "tp": 1,
+          "fp": 3,
+          "fn": 14,
+          "precision": 0.25,
+          "recall": 0.0667,
+          "f1": 0.1053
+        },
+        "endpoint": {
+          "tp": 1,
+          "fp": 3,
+          "fn": 13,
+          "precision": 0.25,
+          "recall": 0.0714,
+          "f1": 0.1111
+        },
+        "endpoint_units": {
+          "tp": [
+            [
+              "missing_csp",
+              "/"
+            ]
+          ],
+          "fp": [
+            [
+              "cross_domain",
+              "/assets/public/favicon_js.ico"
+            ],
+            [
+              "timestamp_disclosure",
+              "/sitemap.xml"
+            ],
+            [
+              "zap_10109",
+              "/sitemap.xml"
+            ]
+          ],
+          "fn": [
+            [
+              "error_disclosure",
+              "/rest/"
+            ],
+            [
+              "error_disclosure",
+              "/rest/admin/login"
+            ],
+            [
+              "exposed_path",
+              "/api/"
+            ],
+            [
+              "exposed_path",
+              "/ftp/"
+            ],
+            [
+              "exposed_path",
+              "/robots.txt"
+            ],
+            [
+              "idor_indicator",
+              "/api/Feedbacks/"
+            ],
+            [
+              "idor_indicator",
+              "/rest/basket/"
+            ],
+            [
+              "missing_hsts",
+              "/"
+            ],
+            [
+              "sqli_indicator",
+              "/rest/products/reviews"
+            ],
+            [
+              "sqli_indicator",
+              "/rest/products/search"
+            ],
+            [
+              "weak_tls",
+              "/"
+            ],
+            [
+              "xss_reflection",
+              "/api/Feedbacks"
+            ],
+            [
+              "xss_reflection",
+              "/rest/products/search"
+            ]
+          ]
+        }
+      }
+    },
+    "webgoat": {
+      "horus": {
+        "check_type": {
+          "tp": 4,
+          "fp": 1,
+          "fn": 11,
+          "precision": 0.8,
+          "recall": 0.2667,
+          "f1": 0.4
+        },
+        "endpoint": {
+          "tp": 4,
+          "fp": 1,
+          "fn": 4,
+          "precision": 0.8,
+          "recall": 0.5,
+          "f1": 0.6154
+        },
+        "endpoint_units": {
+          "tp": [
+            [
+              "missing_csp",
+              "/"
+            ],
+            [
+              "missing_hsts",
+              "/"
+            ],
+            [
+              "missing_xfo",
+              "/"
+            ],
+            [
+              "weak_tls",
+              "/"
+            ]
+          ],
+          "fp": [
+            [
+              "open_redirect",
+              "/WebGoat (parameter \"next\")"
+            ]
+          ],
+          "fn": [
+            [
+              "error_disclosure",
+              "/WebGoat/attack"
+            ],
+            [
+              "idor_indicator",
+              "/WebGoat/attack"
+            ],
+            [
+              "sqli_indicator",
+              "/WebGoat/attack"
+            ],
+            [
+              "xss_reflection",
+              "/WebGoat/attack"
+            ]
+          ]
+        }
+      },
+      "zap": {
+        "check_type": {
+          "tp": 6,
+          "fp": 8,
+          "fn": 9,
+          "precision": 0.4286,
+          "recall": 0.4,
+          "f1": 0.4138
+        },
+        "endpoint": {
+          "tp": 2,
+          "fp": 9,
+          "fn": 6,
+          "precision": 0.1818,
+          "recall": 0.25,
+          "f1": 0.2105
+        },
+        "endpoint_units": {
+          "tp": [
+            [
+              "missing_csp",
+              "/"
+            ],
+            [
+              "missing_xfo",
+              "/"
+            ]
+          ],
+          "fp": [
+            [
+              "insecure_cookies",
+              "/WebGoat"
+            ],
+            [
+              "missing_xcto",
+              "/WebGoat/login"
+            ],
+            [
+              "sqli_indicator",
+              "/WebGoat/register.mvc"
+            ],
+            [
+              "zap_10031",
+              "/WebGoat/register.mvc"
+            ],
+            [
+              "zap_10104",
+              "/WebGoat"
+            ],
+            [
+              "zap_10111",
+              "/WebGoat/login"
+            ],
+            [
+              "zap_10112",
+              "/WebGoat"
+            ],
+            [
+              "zap_10202",
+              "/WebGoat/login"
+            ],
+            [
+              "zap_40042",
+              "/WebGoat/actuator/health"
+            ]
+          ],
+          "fn": [
+            [
+              "error_disclosure",
+              "/WebGoat/attack"
+            ],
+            [
+              "idor_indicator",
+              "/WebGoat/attack"
+            ],
+            [
+              "missing_hsts",
+              "/"
+            ],
+            [
+              "sqli_indicator",
+              "/WebGoat/attack"
+            ],
+            [
+              "weak_tls",
+              "/"
+            ],
+            [
+              "xss_reflection",
+              "/WebGoat/attack"
+            ]
+          ]
+        }
+      }
+    },
+    "bwapp": {
+      "horus": {
+        "check_type": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 11,
+          "precision": 0.8333,
+          "recall": 0.3125,
+          "f1": 0.4545
+        },
+        "endpoint": {
+          "tp": 5,
+          "fp": 1,
+          "fn": 11,
+          "precision": 0.8333,
+          "recall": 0.3125,
+          "f1": 0.4545
+        },
+        "endpoint_units": {
+          "tp": [
+            [
+              "missing_csp",
+              "/"
+            ],
+            [
+              "missing_hsts",
+              "/"
+            ],
+            [
+              "missing_xfo",
+              "/"
+            ],
+            [
+              "server_banner_disclosure",
+              "/"
+            ],
+            [
+              "weak_tls",
+              "/"
+            ]
+          ],
+          "fp": [
+            [
+              "exposed_metadata",
+              "/robots.txt"
+            ]
+          ],
+          "fn": [
+            [
+              "error_disclosure",
+              "/"
+            ],
+            [
+              "idor_indicator",
+              "/idor_1.php"
+            ],
+            [
+              "idor_indicator",
+              "/idor_2.php"
+            ],
+            [
+              "insecure_cookies",
+              "/"
+            ],
+            [
+              "sqli_indicator",
+              "/sqli_1.php"
+            ],
+            [
+              "sqli_indicator",
+              "/sqli_2.php"
+            ],
+            [
+              "sqli_indicator",
+              "/sqli_4.php"
+            ],
+            [
+              "sqli_indicator",
+              "/sqli_8.php"
+            ],
+            [
+              "xss_reflection",
+              "/xss_get.php"
+            ],
+            [
+              "xss_reflection",
+              "/xss_post.php"
+            ],
+            [
+              "xss_reflection",
+              "/xss_stored_1.php"
+            ]
+          ]
+        }
+      },
+      "zap": {
+        "check_type": {
+          "tp": 5,
+          "fp": 7,
+          "fn": 11,
+          "precision": 0.4167,
+          "recall": 0.3125,
+          "f1": 0.3571
+        },
+        "endpoint": {
+          "tp": 5,
+          "fp": 7,
+          "fn": 11,
+          "precision": 0.4167,
+          "recall": 0.3125,
+          "f1": 0.3571
+        },
+        "endpoint_units": {
+          "tp": [
+            [
+              "error_disclosure",
+              "/"
+            ],
+            [
+              "insecure_cookies",
+              "/"
+            ],
+            [
+              "missing_csp",
+              "/"
+            ],
+            [
+              "missing_xfo",
+              "/"
+            ],
+            [
+              "server_banner_disclosure",
+              "/"
+            ]
+          ],
+          "fp": [
+            [
+              "info_disclosure",
+              "/sitemap.xml"
+            ],
+            [
+              "missing_xcto",
+              "/robots.txt"
+            ],
+            [
+              "zap_0",
+              "/passwords"
+            ],
+            [
+              "zap_10003",
+              "/js/jquery-1.4.4.min.js"
+            ],
+            [
+              "zap_10033",
+              "/documents"
+            ],
+            [
+              "zap_10104",
+              "/documents"
+            ],
+            [
+              "zap_10112",
+              "/portal.php"
+            ]
+          ],
+          "fn": [
+            [
+              "idor_indicator",
+              "/idor_1.php"
+            ],
+            [
+              "idor_indicator",
+              "/idor_2.php"
+            ],
+            [
+              "missing_hsts",
+              "/"
+            ],
+            [
+              "sqli_indicator",
+              "/sqli_1.php"
+            ],
+            [
+              "sqli_indicator",
+              "/sqli_2.php"
+            ],
+            [
+              "sqli_indicator",
+              "/sqli_4.php"
+            ],
+            [
+              "sqli_indicator",
+              "/sqli_8.php"
+            ],
+            [
+              "weak_tls",
+              "/"
+            ],
+            [
+              "xss_reflection",
+              "/xss_get.php"
+            ],
+            [
+              "xss_reflection",
+              "/xss_post.php"
+            ],
+            [
+              "xss_reflection",
+              "/xss_stored_1.php"
+            ]
+          ]
+        }
+      }
+    },
+    "mutillidae": {
+      "horus": {
+        "check_type": {
+          "tp": 6,
+          "fp": 1,
+          "fn": 10,
+          "precision": 0.8571,
+          "recall": 0.375,
+          "f1": 0.5217
+        },
+        "endpoint": {
+          "tp": 6,
+          "fp": 1,
+          "fn": 10,
+          "precision": 0.8571,
+          "recall": 0.375,
+          "f1": 0.5217
+        },
+        "endpoint_units": {
+          "tp": [
+            [
+              "insecure_cookies",
+              "/"
+            ],
+            [
+              "missing_csp",
+              "/"
+            ],
+            [
+              "missing_hsts",
+              "/"
+            ],
+            [
+              "missing_xfo",
+              "/"
+            ],
+            [
+              "server_banner_disclosure",
+              "/"
+            ],
+            [
+              "weak_tls",
+              "/"
+            ]
+          ],
+          "fp": [
+            [
+              "exposed_metadata",
+              "/.git/config"
+            ]
+          ],
+          "fn": [
+            [
+              "error_disclosure",
+              "/php-errors.php"
+            ],
+            [
+              "exposed_path",
+              "/robots.txt"
+            ],
+            [
+              "idor_indicator",
+              "/user-info-xpath.php"
+            ],
+            [
+              "idor_indicator",
+              "/user-info.php"
+            ],
+            [
+              "sqli_indicator",
+              "/dns-lookup.php"
+            ],
+            [
+              "sqli_indicator",
+              "/login.php"
+            ],
+            [
+              "sqli_indicator",
+              "/pen-test-tool-lookup.php"
+            ],
+            [
+              "xss_reflection",
+              "/"
+            ],
+            [
+              "xss_reflection",
+              "/add-to-your-blog.php"
+            ],
+            [
+              "xss_reflection",
+              "/register.php"
+            ]
+          ]
+        }
+      },
+      "zap": {
+        "check_type": {
+          "tp": 5,
+          "fp": 19,
+          "fn": 11,
+          "precision": 0.2083,
+          "recall": 0.3125,
+          "f1": 0.25
+        },
+        "endpoint": {
+          "tp": 4,
+          "fp": 20,
+          "fn": 12,
+          "precision": 0.1667,
+          "recall": 0.25,
+          "f1": 0.2
+        },
+        "endpoint_units": {
+          "tp": [
+            [
+              "insecure_cookies",
+              "/"
+            ],
+            [
+              "missing_csp",
+              "/"
+            ],
+            [
+              "missing_xfo",
+              "/"
+            ],
+            [
+              "server_banner_disclosure",
+              "/"
+            ]
+          ],
+          "fp": [
+            [
+              "cors_misconfiguration",
+              "/phpmyadmin"
+            ],
+            [
+              "error_disclosure",
+              "/includes"
+            ],
+            [
+              "info_disclosure",
+              "/config.inc"
+            ],
+            [
+              "missing_xcto",
+              "/robots.txt"
+            ],
+            [
+              "timestamp_disclosure",
+              "/phpmyadmin"
+            ],
+            [
+              "zap_0",
+              "/owasp-esapi-php/src/reference/validation"
+            ],
+            [
+              "zap_10003",
+              "/javascript/jQuery/jquery.js"
+            ],
+            [
+              "zap_10019",
+              "/owasp-esapi-php/LICENSE"
+            ],
+            [
+              "zap_10028",
+              "/phpmyadmin/url.php"
+            ],
+            [
+              "zap_10031",
+              "/phpmyadmin/navigation.php"
+            ],
+            [
+              "zap_10033",
+              "/javascript"
+            ],
+            [
+              "zap_10041",
+              "/"
+            ],
+            [
+              "zap_10104",
+              "/phpmyadmin"
+            ],
+            [
+              "zap_10109",
+              "/"
+            ],
+            [
+              "zap_10111",
+              "/"
+            ],
+            [
+              "zap_10112",
+              "/"
+            ],
+            [
+              "zap_10202",
+              "/"
+            ],
+            [
+              "zap_2",
+              "/documentation/how-to-access-Mutillidae-over-Virtual-Box-network.php"
+            ],
+            [
+              "zap_90003",
+              "/documentation/Mutillidae-Test-Scripts.txt"
+            ],
+            [
+              "zap_90030",
+              "/webservices/soap/ws-lookup-dns-record.php"
+            ]
+          ],
+          "fn": [
+            [
+              "error_disclosure",
+              "/php-errors.php"
+            ],
+            [
+              "exposed_path",
+              "/robots.txt"
+            ],
+            [
+              "idor_indicator",
+              "/user-info-xpath.php"
+            ],
+            [
+              "idor_indicator",
+              "/user-info.php"
+            ],
+            [
+              "missing_hsts",
+              "/"
+            ],
+            [
+              "sqli_indicator",
+              "/dns-lookup.php"
+            ],
+            [
+              "sqli_indicator",
+              "/login.php"
+            ],
+            [
+              "sqli_indicator",
+              "/pen-test-tool-lookup.php"
+            ],
+            [
+              "weak_tls",
+              "/"
+            ],
+            [
+              "xss_reflection",
+              "/"
+            ],
+            [
+              "xss_reflection",
+              "/add-to-your-blog.php"
+            ],
+            [
+              "xss_reflection",
+              "/register.php"
+            ]
+          ]
+        }
+      }
+    }
+  }
+}

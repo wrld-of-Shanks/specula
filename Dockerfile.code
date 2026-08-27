@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+# Run as a non-root user with a writable home (transformers/huggingface cache).
+RUN groupadd -r specula && useradd -r -g specula -m -d /home/specula -s /usr/sbin/nologin specula
+
+WORKDIR /app
+
+COPY backend/services/code/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY backend/services/code/ /app/
+
+RUN chown -R specula:specula /app
+
+# Keep the Hugging Face transformer cache inside the user's writable home.
+ENV TRANSFORMERS_CACHE=/home/specula/.cache/huggingface \
+    HF_HOME=/home/specula/.cache/huggingface
+
+USER specula
+
+EXPOSE 5002
+
+# Serve with gunicorn (production WSGI server). Model inference can be slow,
+# so a generous timeout is used to avoid killing in-flight scan requests.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+  CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5002/health')"]
+
+CMD ["gunicorn", "--workers", "2", "--bind", "0.0.0.0:5002", "--timeout", "300", "app:app"]

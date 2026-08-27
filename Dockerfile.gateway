@@ -1,0 +1,29 @@
+FROM node:20-alpine
+
+# Run as a non-root user.
+RUN addgroup -S specula && adduser -S -G specula specula
+
+# git is required by the gateway's repo-scan route (clones repositories).
+RUN apk add --no-cache git
+
+WORKDIR /app
+
+COPY backend/shared/ /app/shared/
+COPY backend/gateway/package*.json /app/
+RUN npm install --omit=dev
+
+COPY backend/gateway/ /app/gateway/
+
+# Make the app dir writable by the non-root user.
+RUN chown -R specula:specula /app
+
+USER specula
+
+EXPOSE 3000
+
+# Healthcheck: the gateway must respond. Any HTTP reply (even a 503 "degraded"
+# before all upstream services are ready) means the process is alive.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD ["node", "-e", "require('http').get('http://127.0.0.1:3000/health', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"]
+
+CMD ["node", "gateway/server.js"]

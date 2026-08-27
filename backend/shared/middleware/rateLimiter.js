@@ -24,4 +24,12 @@ const dastLimiter = rateLimit({
   message: { error: 'Too many DAST requests, please try again later' }
 });
 
-module.exports = { defaultLimiter, scanLimiter, dastLimiter };
+const autoFixLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Auto-fix rate limit exceeded (max 5 per hour). Please try again later.' }
+});
+
+module.exports = { defaultLimiter, scanLimiter, dastLimiter, autoFixLimiter };

@@ -81,4 +81,9 @@ export const removeAuthorizedTarget = async (target) => {
   return response.data;
 };
 
+export const autoFixFinding = async (jobId, findingId) => {
+  const response = await api.post(`/api/code/scan-repo/${jobId}/fix`, { finding_id: findingId });
+  return response.data;
+};
+
 export default api;

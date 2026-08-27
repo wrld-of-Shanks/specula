@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { GitBranch, Search, AlertTriangle, CheckCircle, Clock, FileCode } from 'lucide-react';
-import { scanRepo, getScanJobs, getScanJob } from '../services/api';
+import { GitBranch, Search, AlertTriangle, CheckCircle, Clock, FileCode, ExternalLink } from 'lucide-react';
+import { scanRepo, getScanJobs, getScanJob, autoFixFinding } from '../services/api';
 import FindingCard from './FindingCard';
 
 const RepoScans = () => {
@@ -11,6 +11,8 @@ const RepoScans = () => {
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState(null);
+  const [fixingId, setFixingId] = useState(null);
+  const [fixResult, setFixResult] = useState(null);
 
   useEffect(() => {
     loadJobs();
@@ -51,6 +53,19 @@ const RepoScans = () => {
       setJobDetails(data);
     } catch (err) {
       setError('Failed to load job details');
+    }
+  };
+
+  const handleAutoFix = async (finding, jobId) => {
+    setFixingId(finding._id);
+    setFixResult(null);
+    try {
+      const result = await autoFixFinding(jobId, finding._id);
+      setFixResult(result);
+    } catch (err) {
+      setFixResult({ error: err.response?.data?.error || err.message || 'Auto-fix failed' });
+    } finally {
+      setFixingId(null);
     }
   };
 
@@ -114,12 +129,36 @@ const RepoScans = () => {
       {jobDetails && (
         <div className="job-details">
           <h3>Findings: {jobDetails.repo_url}</h3>
+          {fixResult && (
+            <div className={`fix-result ${fixResult.error ? 'error' : 'success'}`}>
+              {fixResult.pr_url && (
+                <a href={fixResult.pr_url} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink size={16} /> View Pull Request
+                </a>
+              )}
+              {fixResult.issue_url && (
+                <a href={fixResult.issue_url} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink size={16} /> View Issue (fallback)
+                </a>
+              )}
+              {fixResult.message && <p>{fixResult.message}</p>}
+              {fixResult.error && <p className="error-text">{fixResult.error}</p>}
+            </div>
+          )}
           <div className="findings-by-file">
             {Object.entries(jobDetails.findings).map(([filePath, findings]) => (
               <div key={filePath} className="file-group">
                 <h4 className="file-path">{filePath}</h4>
                 {findings.map((f, i) => (
-                  <FindingCard key={f._id || i} event={f} showType={false} showFile={false} />
+                  <FindingCard
+                    key={f._id || i}
+                    event={f}
+                    showType={false}
+                    showFile={false}
+                    onAutoFix={handleAutoFix}
+                    fixing={fixingId === f._id}
+                    jobId={selectedJob}
+                  />
                 ))}
               </div>
             ))}

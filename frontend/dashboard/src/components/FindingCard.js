@@ -72,13 +72,14 @@ const getSourceInfo = (event) => {
 
 const formatTimestamp = (ts) => ts ? new Date(ts).toLocaleString() : null;
 
-const FindingCard = ({ event, showType = true, showFile = false }) => {
+const FindingCard = ({ event, showType = true, showFile = false, onAutoFix = null, fixing = false, jobId = null }) => {
   const exp = event.explanation || {};
   const rem = exp.remediation || {};
   const certaintyType = event.certainty_type || exp.certainty_type || null;
   const isConfirmed = certaintyType === 'confirmed';
   const confidence = event.confidence;
   const sourceInfo = getSourceInfo(event);
+  const canAutoFix = onAutoFix && event.event_type === 'scan_repo' && event.file_path && jobId;
 
   return (
     <div className={`event-card ${event.severity} ${isConfirmed ? 'confirmed' : 'inferred'}`}>
@@ -176,6 +177,21 @@ const FindingCard = ({ event, showType = true, showFile = false }) => {
           <h4><Wrench className="icon-sm" /> Suggested Fix</h4>
           <pre className="fix-code">{event.suggested_fix}</pre>
           <p className="fix-disclaimer">This is a suggested fix and should be reviewed before applying.</p>
+        </div>
+      )}
+
+      {canAutoFix && (
+        <div className="explanation-section autofix-section">
+          <button
+            className="auto-fix-btn"
+            disabled={fixing}
+            onClick={() => onAutoFix(event, jobId)}
+          >
+            {fixing ? 'Creating PR...' : <><Wrench className="icon-sm" /> Auto-Fix & Create PR</>}
+          </button>
+          <p className="fix-disclaimer">
+            Generates an AI fix and opens a GitHub pull request. Fixes are AI-generated — review before merging.
+          </p>
         </div>
       )}
     </div>

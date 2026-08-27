@@ -8,12 +8,27 @@ const { promisify } = require('util');
 const router = express.Router();
 const Event = require('../../shared/schema/event');
 const ScanJob = require('../../shared/schema/scanJob');
-const { validate, scanRepoSchema } = require('../../shared/utils/validation');
-const { scanLimiter } = require('../../shared/middleware/rateLimiter');
+const AutoFixLog = require('../../shared/schema/autoFixLog');
+const { validate, scanRepoSchema, autoFixSchema } = require('../../shared/utils/validation');
+const { scanLimiter, autoFixLimiter } = require('../../shared/middleware/rateLimiter');
 const { createChildLogger } = require('../../shared/utils/logger');
+const {
+  getOctokit,
+  extractOwnerRepo,
+  getDefaultBranch,
+  createBranch,
+  resolveFix,
+  newBranchName,
+  buildPrBody,
+  buildReportBody
+} = require('./autofix-helpers');
 
 const log = createChildLogger('scan-repo-route');
 const execFileAsync = promisify(execFile);
+
+const AUTO_FIX_ENABLED = process.env.AUTO_FIX_ENABLED !== 'false';
+const MAX_AUTO_FIX_DAILY = Number(process.env.MAX_AUTO_FIX_DAILY || 50);
+const CODE_SERVICE = process.env.CODE_SERVICE || 'http://localhost:5002';
 
 const SOURCE_EXTENSIONS = new Set([
   '.js', '.ts', '.jsx', '.tsx', '.py', '.java', '.go', '.rs',
@@ -325,8 +340,213 @@ module.exports = function(codeService, triageEngine, wss) {
     }
   });
 
+  /**
+   * @swagger
+   * /api/code/scan-repo/{jobId}/fix:
+   *   post:
+   *     summary: Auto-fix a finding and open a pull request
+   *     description: Generates a fix for a repo-scan finding (from the stored suggested fix or a
+   *       fresh CodeT5 call), commits it to a new branch via the GitHub Contents API, and opens a
+   *       pull request. If no fix can be generated, a report-only GitHub Issue is created instead.
+   *       No client-supplied code is accepted — fixes are always generated or stored server-side.
+   *     tags: [Repo Scan]
+   *     security:
+   *       - ApiKeyAuth: []
+   *     parameters:
+   *       - name: jobId
+   *         in: path
+   *         required: true
+   *         schema: { type: string }
+   *         description: Scan job id
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [finding_id]
+   *             properties:
+   *               finding_id:
+   *                 type: string
+   *                 description: MongoDB id of the scan_repo Event (finding) to fix
+   *     responses:
+   *       '200':
+   *         description: Pull request or report-only issue created
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 pr_url: { type: string, nullable: true }
+   *                 issue_url: { type: string, nullable: true }
+   *                 branch: { type: string, nullable: true }
+   *                 fallback: { type: boolean }
+   *                 message: { type: string }
+   *       '400':
+   *         $ref: '#/components/schemas/ValidationError'
+   *       '404':
+   *         $ref: '#/components/schemas/Error'
+   *       '503':
+   *         $ref: '#/components/schemas/Error'
+   *       '500':
+   *         $ref: '#/components/schemas/Error'
+   */
+  router.post('/scan-repo/:jobId/fix', autoFixLimiter, validate(autoFixSchema), async (req, res) => {
+    const { finding_id } = req.body;
+    const jobId = req.params.jobId;
+    const userIp = req.ip || null;
+
+    if (!AUTO_FIX_ENABLED) {
+      return res.status(403).json({ error: 'Auto-fix is disabled (AUTO_FIX_ENABLED=false)' });
+    }
+
+    const octokit = await getOctokit();
+    if (!octokit) {
+      log.error({ requestId: req.id }, 'Auto-fix attempted without GITHUB_TOKEN');
+      return res.status(503).json({
+        error: 'Auto-fix is unavailable: GITHUB_TOKEN is not configured. Set GITHUB_TOKEN in your environment.'
+      });
+    }
+
+    try {
+      const [job, finding] = await Promise.all([
+        ScanJob.findById(jobId),
+        Event.findById(finding_id)
+      ]);
+
+      if (!job) {
+        return res.status(404).json({ error: 'Scan job not found' });
+      }
+      if (!finding || (finding.job_id && String(finding.job_id) !== String(job._id))) {
+        return res.status(404).json({ error: 'Finding not found for this scan job' });
+      }
+      if (!finding.file_path) {
+        return res.status(400).json({ error: 'This finding does not reference a file (cannot auto-fix)' });
+      }
+
+      const { owner, repo } = extractOwnerRepo(job.repo_url);
+      if (!owner || !repo) {
+        log.error({ repo_url: job.repo_url, requestId: req.id }, 'Could not parse owner/repo from repo_url');
+        return res.status(400).json({ error: `Could not parse owner/repo from repo_url: ${job.repo_url}` });
+      }
+
+      const dailyCount = await AutoFixLog.countDocuments({
+        user_ip: userIp,
+        created_at: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+      });
+      if (dailyCount >= MAX_AUTO_FIX_DAILY) {
+        return res.status(429).json({ error: `Auto-fix daily limit reached (max ${MAX_AUTO_FIX_DAILY} per day)` });
+      }
+
+      const audit = new AutoFixLog({
+        job_id: job._id,
+        finding_id: finding._id,
+        repo_url: job.repo_url,
+        file_path: finding.file_path,
+        user_ip: userIp
+      });
+
+      // Fetch the current file from GitHub (validates the path exists and
+      // provides the SHA needed for Contents API commits).
+      let fileContent = null;
+      let fileSha = null;
+      try {
+        const content = await octokit.rest.repos.getContent({ owner, repo, path: finding.file_path });
+        const data = content.data;
+        fileContent = Buffer.from(data.content, 'base64').toString('utf-8');
+        fileSha = data.sha;
+      } catch (err) {
+        const status = err?.status;
+        if (status === 404) {
+          log.warn({ file_path: finding.file_path, requestId: req.id }, 'Finding file not found on GitHub');
+          return await reportOnly(octokit, { owner, repo, finding, audit, userIp, res, reason: 'file-not-found' });
+        }
+        throw err;
+      }
+
+      // Resolve a fix: stored suggested_fix first, then a fresh CodeT5 call.
+      const fix = await resolveFix(finding, fileContent);
+      if (!fix) {
+        return await reportOnly(octokit, { owner, repo, finding, audit, userIp, res, reason: 'no-fix' });
+      }
+
+      const baseBranch = await getDefaultBranch(octokit, owner, repo);
+      const branchName = newBranchName();
+
+      const headSha = await createBranch(octokit, owner, repo, baseBranch, branchName);
+      await octokit.rest.repos.createOrUpdateFileContents({
+        owner,
+        repo,
+        path: finding.file_path,
+        message: `[Auto-Fix] Patch ${finding.prediction} in ${finding.file_path}\n\nGenerated by Specula AI Security Scanner. Review before merging.`,
+        content: Buffer.from(fix, 'utf-8').toString('base64'),
+        sha: fileSha,
+        branch: branchName
+      });
+
+      const prBody = buildPrBody(finding, finding.file_path, headSha);
+      const pr = await octokit.rest.pulls.create({
+        owner,
+        repo,
+        title: `[AI Auto-Fix] Patch ${finding.prediction} in ${finding.file_path}`,
+        head: branchName,
+        base: baseBranch,
+        body: prBody
+      });
+
+      finding.status = 'human_review';
+      await finding.save();
+
+      audit.fix_generated = true;
+      audit.status = 'success';
+      audit.branch = branchName;
+      audit.pr_url = pr.data.html_url;
+      await audit.save();
+
+      log.info({ prUrl: pr.data.html_url, findingId: finding._id, requestId: req.id }, 'Auto-fix PR created');
+      return res.json({
+        success: true,
+        pr_url: pr.data.html_url,
+        branch: branchName,
+        fallback: false,
+        message: 'Pull request created successfully'
+      });
+    } catch (err) {
+      log.error({ err, requestId: req.id }, 'Auto-fix failed');
+      return res.status(500).json({ error: 'Auto-fix failed: ' + (err?.message || 'Unknown error') });
+    }
+  });
+
   return router;
 };
+
+async function reportOnly(octokit, { owner, repo, finding, audit, res, reason }) {
+  try {
+    const title = `[Specula] Manual fix required: ${finding.prediction} in ${finding.file_path}`;
+    const body = buildReportBody(finding, reason);
+    const issue = await octokit.rest.issues.create({ owner, repo, title, body });
+
+    audit.fallback_issue = true;
+    audit.status = 'report_only';
+    audit.issue_url = issue.data.html_url;
+    await audit.save();
+
+    log.info({ issueUrl: issue.data.html_url, findingId: finding._id }, 'Report-only issue created');
+    return res.json({
+      success: true,
+      issue_url: issue.data.html_url,
+      fallback: true,
+      message: 'No auto-fix could be generated. A report-only issue with remediation steps was created.'
+    });
+  } catch (err) {
+    log.error({ err }, 'Report-only issue creation failed');
+    audit.status = 'failed';
+    audit.error = err?.message || 'Unknown error';
+    await audit.save();
+    return res.status(500).json({ error: 'Failed to create report-only issue: ' + (err?.message || 'Unknown error') });
+  }
+}
 
 function broadcastEvent(wss, event) {
   const message = JSON.stringify({ type: 'new_event', data: event });

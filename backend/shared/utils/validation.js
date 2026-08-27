@@ -68,6 +68,11 @@ const paginationSchema = Joi.object({
   since: Joi.string().isoDate().optional()
 });
 
+const autoFixSchema = Joi.object({
+  finding_id: Joi.string().hex().length(24).required()
+    .description('MongoDB id of the scan_repo Event (finding) to fix')
+});
+
 function validate(schema, source = 'body') {
   return (req, res, next) => {
     const data = source === 'query' ? req.query : req[source];
@@ -88,6 +93,7 @@ module.exports = {
   dastScanSchema,
   authorizedTargetSchema,
   paginationSchema,
+  autoFixSchema,
   validate,
   MAX_CODE_LENGTH,
   MAX_URL_LENGTH

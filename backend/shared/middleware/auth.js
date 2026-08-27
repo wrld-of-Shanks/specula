@@ -3,13 +3,18 @@ const { createChildLogger } = require('../utils/logger');
 
 const log = createChildLogger('auth');
 
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-  throw new Error('API_KEY environment variable is required. Set it before starting the gateway.');
-}
-
 function apiKeyAuth(req, res, next) {
+  // Read the API key from the environment at request time instead of caching it
+  // at module load. This avoids a stale/empty key when the module is required
+  // before process.env.API_KEY is populated (e.g. during test discovery when
+  // multiple suites share one process), and prevents a throw-at-load crash.
+  const API_KEY = process.env.API_KEY;
+
+  if (!API_KEY) {
+    log.error('API_KEY environment variable not set');
+    return res.status(500).json({ error: 'API key configuration error' });
+  }
+
   const apiKey = req.headers['x-api-key'];
 
   if (!apiKey) {

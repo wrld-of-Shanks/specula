@@ -51,27 +51,18 @@ function Dashboard() {
       newStats[type] = (newStats[type] || 0) + 1;
 
       if (data) {
-        if (data.severity === 'critical' || data.severity === 'high') {
-          newStats.critical += 1;
-        } else if (data.severity === 'medium') {
-          newStats.medium += 1;
-        }
+        const sev = data.severity || '';
+        if (sev === 'critical') newStats.critical += 1;
+        else if (sev === 'high') newStats.high += 1;
+        else if (sev === 'medium') newStats.medium += 1;
+
         if (data.findings) {
           data.findings.forEach(f => {
-            if (f.severity === 'critical' || f.severity === 'high') {
-              newStats.critical += 1;
-            } else if (f.severity === 'medium') {
-              newStats.medium += 1;
-            }
+            const fs = f.severity || '';
+            if (fs === 'critical') newStats.critical += 1;
+            else if (fs === 'high') newStats.high += 1;
+            else if (fs === 'medium') newStats.medium += 1;
           });
-        }
-        if (data.prediction && data.prediction !== 'not_vulnerable') {
-          const sev = data.severity || data.explanation?.severity;
-          if (sev === 'critical' || sev === 'high') {
-            newStats.critical += 1;
-          } else if (sev === 'medium') {
-            newStats.medium += 1;
-          }
         }
       }
       return newStats;
@@ -270,12 +261,16 @@ function Dashboard() {
                 <span style={{ color: 'white', fontWeight: '600', fontSize: '14px' }}>({stats.total})</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ color: 'white', fontSize: '13px' }}>Critical/High</span>
-                <span style={{ color: 'white', fontWeight: '600', fontSize: '14px' }}>({stats.critical})</span>
+                <span style={{ color: '#ef4444', fontSize: '13px' }}>Critical</span>
+                <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '14px' }}>({stats.critical})</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ color: 'white', fontSize: '13px' }}>Medium</span>
-                <span style={{ color: 'white', fontWeight: '600', fontSize: '14px' }}>({stats.medium})</span>
+                <span style={{ color: '#fb923c', fontSize: '13px' }}>High</span>
+                <span style={{ color: '#fb923c', fontWeight: '600', fontSize: '14px' }}>({stats.high})</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ color: '#eab308', fontSize: '13px' }}>Medium</span>
+                <span style={{ color: '#eab308', fontWeight: '600', fontSize: '14px' }}>({stats.medium})</span>
               </div>
             </div>
             <div style={{ display: 'flex', gap: '20px' }}>

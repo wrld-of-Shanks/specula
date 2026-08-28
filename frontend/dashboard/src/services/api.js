@@ -28,28 +28,21 @@ export const fetchEventById = async (id) => {
 };
 
 export const fetchStats = async () => {
-  const response = await api.get('/api/events/stats/summary');
-  const raw = response.data;
-
-  if (!Array.isArray(raw)) return raw;
+  const response = await api.get('/api/events', { params: { limit: 1000 } });
+  const events = response.data.events || response.data || [];
 
   const stats = { total: 0, critical: 0, high: 0, medium: 0, dast: 0, code: 0, repo: 0 };
-  for (const group of raw) {
-    const count = group.count || 0;
-    const type = group._id?.event_type || '';
-    const status = group._id?.status || '';
+  for (const e of events) {
+    stats.total += 1;
+    const type = e.event_type || '';
+    if (type === 'dast') stats.dast += 1;
+    else if (type === 'code') stats.code += 1;
+    else if (type === 'scan_repo') stats.repo += 1;
 
-    stats.total += count;
-    if (type === 'dast') stats.dast += count;
-    else if (type === 'code') stats.code += count;
-    else if (type === 'scan_repo') stats.repo += count;
-
-    if (status === 'auto_flagged') {
-      const avgConf = group.avg_confidence || 0;
-      if (avgConf >= 0.80 || status === 'auto_flagged') stats.critical += count;
-    } else if (status === 'human_review') {
-      stats.medium += count;
-    }
+    const sev = e.severity || '';
+    if (sev === 'critical') stats.critical += 1;
+    else if (sev === 'high') stats.high += 1;
+    else if (sev === 'medium') stats.medium += 1;
   }
   return stats;
 };

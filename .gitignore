@@ -5,6 +5,8 @@ __pycache__/
 *.pyc
 venv/
 env/
+.venv/
+**/.venv/
 
 # Coverage / test artifacts
 .coverage
@@ -46,4 +48,3 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
-shared/node_modules

@@ -44,6 +44,14 @@ const UnifiedScanner = ({ onResumeFeed }) => {
   const pollTimerRef = useRef(null);
   const elapsedTimerRef = useRef(null);
   const startTimeRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  const autoResize = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.max(el.scrollHeight, 38)}px`;
+  }, []);
 
   const handleInputChange = (e) => {
     const val = e.target.value;
@@ -60,6 +68,7 @@ const UnifiedScanner = ({ onResumeFeed }) => {
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
       stopElapsedTimer();
     }
+    autoResize();
   };
 
   useEffect(() => {
@@ -68,6 +77,10 @@ const UnifiedScanner = ({ onResumeFeed }) => {
       if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    autoResize();
+  }, [detectedType, autoResize]);
 
   const startElapsedTimer = useCallback(() => {
     startTimeRef.current = Date.now();
@@ -162,9 +175,11 @@ const UnifiedScanner = ({ onResumeFeed }) => {
 
   return (
     <div className="unified-scanner">
+      <div className="scanner-overlay"></div>
       <div className="scanner-input-area">
         <div className="input-row">
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
@@ -172,15 +187,8 @@ const UnifiedScanner = ({ onResumeFeed }) => {
               ? TYPE_CONFIG[detectedType].hint
               : 'Paste code, GitHub repo URL, or website URL...'
             }
-            rows={detectedType === 'code' ? 10 : 2}
             className={`scanner-textarea ${detectedType ? 'has-type' : ''}`}
           />
-          {detectedType && (
-            <div className="type-indicator" style={{ borderColor: config.color }}>
-              <Icon className="icon-xs" style={{ color: config.color }} />
-              <span style={{ color: config.color }}>{config.label}</span>
-            </div>
-          )}
         </div>
 
           <div className="scanner-controls">
@@ -223,7 +231,7 @@ const UnifiedScanner = ({ onResumeFeed }) => {
               {loading ? (
                 <><Loader className="icon-xs spin" /> Scanning...</>
               ) : (
-                <><Search className="icon-xs" /> Scan</>
+                'Scan'
               )}
             </button>
           </div>

@@ -14,34 +14,34 @@ const StatsBar = ({ events }) => {
   return (
     <div className="stats-bar">
       <div className="stat-pill">
-        <Shield className="stat-pill-icon" style={{ color: '#3b82f6' }} />
+        <Shield className="stat-pill-icon" style={{ color: '#ffffff' }} />
         <span className="stat-pill-value">{total}</span>
         <span className="stat-pill-label">Total</span>
       </div>
       <div className="stat-divider" />
       <div className="stat-pill">
-        <AlertTriangle className="stat-pill-icon" style={{ color: '#ef4444' }} />
+        <AlertTriangle className="stat-pill-icon" style={{ color: '#ffffff' }} />
         <span className="stat-pill-value">{critical + high}</span>
         <span className="stat-pill-label">Critical/High</span>
       </div>
       <div className="stat-pill">
-        <AlertTriangle className="stat-pill-icon" style={{ color: '#eab308' }} />
+        <AlertTriangle className="stat-pill-icon" style={{ color: '#ffffff' }} />
         <span className="stat-pill-value">{medium}</span>
         <span className="stat-pill-label">Medium</span>
       </div>
       <div className="stat-divider" />
       <div className="stat-pill">
-        <Globe className="stat-pill-icon" style={{ color: '#ef4444' }} />
+        <Globe className="stat-pill-icon" style={{ color: '#ffffff' }} />
         <span className="stat-pill-value">{dast}</span>
         <span className="stat-pill-label">DAST</span>
       </div>
       <div className="stat-pill">
-        <Code className="stat-pill-icon" style={{ color: '#06b6d4' }} />
+        <Code className="stat-pill-icon" style={{ color: '#ffffff' }} />
         <span className="stat-pill-value">{code}</span>
         <span className="stat-pill-label">Code</span>
       </div>
       <div className="stat-pill">
-        <GitBranch className="stat-pill-icon" style={{ color: '#f59e0b' }} />
+        <GitBranch className="stat-pill-icon" style={{ color: '#ffffff' }} />
         <span className="stat-pill-value">{repo}</span>
         <span className="stat-pill-label">Repo</span>
       </div>

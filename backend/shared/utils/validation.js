@@ -62,7 +62,7 @@ const authorizedTargetSchema = Joi.object({
 
 const paginationSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
-  limit: Joi.number().integer().min(1).max(100).default(50),
+  limit: Joi.number().integer().min(1).max(1000).default(50),
   event_type: Joi.string().valid('network', 'code', 'dast', 'scan_repo').optional(),
   status: Joi.string().valid('auto_flagged', 'human_review', 'ignored').optional(),
   since: Joi.string().isoDate().optional()

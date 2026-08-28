@@ -102,6 +102,14 @@ Only the gateway (`:3000`) and dashboard (`:3001`) are published.
 
 ---
 
+## 📸 Screenshots
+
+<img src="screenshots/spe1.png" alt="Specula Dashboard" width="100%"/>
+
+<img src="screenshots/spe2.png" alt="Specula Scan Results" width="100%"/>
+
+---
+
 ## 🔐 Security Highlights
 
 Specula has undergone a **comprehensive security audit** covering:

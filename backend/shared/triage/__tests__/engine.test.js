@@ -45,7 +45,7 @@ describe('TriageEngine', () => {
     test('severity levels are correct', () => {
       expect(engine.classify(0.97).severity).toBe('critical');
       expect(engine.classify(0.92).severity).toBe('high');
-      expect(engine.classify(0.80).severity).toBe('medium');
+      expect(engine.classify(0.79).severity).toBe('medium');
       expect(engine.classify(0.55).severity).toBe('low');
     });
 

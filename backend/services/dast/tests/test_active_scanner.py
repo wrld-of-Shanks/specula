@@ -179,7 +179,7 @@ def test_discover_endpoints_finds_exposed_paths(fake_get):
     findings = discover_endpoints('http://localhost')
     assert findings
     assert all(f['check_type'] == 'exposed_path' for f in findings)
-    assert all(f['certainty'] == 'confirmed' for f in findings)
+    assert all(f['certainty_type'] == 'confirmed' for f in findings)
 
 
 def test_discover_endpoints_skips_non_2xx(fake_get):
@@ -206,9 +206,10 @@ def test_finding_shape():
     assert f['event_type'] == 'dast'
     assert f['mode'] == 'active'
     assert f['check_type'] == 'x'
-    assert f['certainty'] is None
+    assert f['certainty_type'] == 'inferred'
+    assert f['explanation']['remediation']['guidance'] != ''
     confirmed = _finding('c', 'l', None, 1.0, 'w', 'e')
-    assert confirmed['certainty'] == 'confirmed'
+    assert confirmed['certainty_type'] == 'confirmed'
 
 
 # ---------------------------------------------------------------------------

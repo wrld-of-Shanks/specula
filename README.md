@@ -1,13 +1,12 @@
 # 🔒 Specula — HORUS Security Scanner
 
-[![Version](https://img.shields.io/badge/version-2.1.0-blue)](https://github.com/yourusername/specula/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/wrld-of-Shanks/specula/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Python](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)](https://python.org/)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://python.org/)
 [![Tests](https://img.shields.io/badge/tests-105%20passing-brightgreen)](backend/gateway/__tests__)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
 [![Security Audit](https://img.shields.io/badge/security-audited-8A2BE2)](#security)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 
 > **A locally‑trained, production‑hardened security platform** combining network intrusion detection, source‑code vulnerability scanning, and dynamic application security testing — all under one confidence‑based triage engine.
 
@@ -82,7 +81,7 @@
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/specula.git
+git clone https://github.com/wrld-of-Shanks/specula.git
 cd specula
 
 # 2. Copy and fill in the environment file
@@ -120,7 +119,7 @@ Specula has undergone a **comprehensive security audit** covering:
 - ✅ **Error obfuscation** – Stack traces are logged server‑side; generic messages are returned to clients
 - ✅ **DAST safety** – Blocked `file://` schemes and added total request caps
 
-**View the full audit report** in [SECURITY.md](SECURITY.md).
+**View the full audit report** in [audit.txt](audit.txt).
 
 ---
 
@@ -209,8 +208,8 @@ cd frontend/dashboard && npm start
 | Confidence | Action |
 |------------|--------|
 | ≥ 0.90 | Auto‑flag (high priority) |
-| 0.60 – 0.90 | Human review |
-| < 0.60 | Ignore |
+| 0.50 – 0.90 | Human review |
+| < 0.50 | Ignore |
 
 *Severity*: Critical (≥0.95), High (≥0.80), Medium (≥0.60), Low (<0.60)
 
@@ -272,8 +271,8 @@ cd backend/gateway && npm run test:triage
 
 **Coverage**: ≥80% lines, statements, functions, branches.
 
-### Integration Tests
-See the [`docs/`](docs) folder for ablation study plans and evaluation reports.
+### CI
+GitHub Actions runs the gateway (Jest), Python services (pytest + coverage), triage engine (Jest), and `docker-compose config` checks on every push to `main`/`master`.
 
 ---
 
@@ -291,10 +290,10 @@ specula/
 │   │   └── dast/             # Flask DAST service (5003)
 │   └── shared/               # Shared middleware, schemas, triage engine
 ├── frontend/
-│   └── dashboard/            # React dashboard (3001)
+│   ├── dashboard/            # React dashboard (3001)
+│   └── landing/              # Marketing / landing page (Vite)
 ├── scripts/                  # Model training, evaluation, ablation
-├── docs/                     # Paper sections, evaluation reports
-├── data/                     # NSL-KDD, CVE datasets
+├── screenshots/              # Project screenshots
 ├── docker-compose.yml        # Full stack orchestration
 ├── Dockerfile.*              # Per‑service Docker builds
 └── .env.example              # Environment variable template
@@ -304,7 +303,7 @@ specula/
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Open an issue or submit a pull request.
 
 ### Development Workflow
 1. Fork the repo and create a feature branch
@@ -316,7 +315,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 
 ## 📄 License
 
-MIT © [HORUS Security Team](https://github.com/yourusername/specula)
+MIT © [HORUS Security Team](https://github.com/wrld-of-Shanks/specula)
 
 ---
 
@@ -330,4 +329,4 @@ MIT © [HORUS Security Team](https://github.com/yourusername/specula)
 
 ---
 
-**Found a security issue?** Please disclose responsibly via [SECURITY.md](SECURITY.md) or email us at security@horus.io.
+**Found a security issue?** Please disclose responsibly by opening a security issue on GitHub or emailing us at security@horus.io.

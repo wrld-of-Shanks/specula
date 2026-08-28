@@ -32,7 +32,8 @@ function Dashboard() {
       if (data) {
         setStats({
           total: data.total || 0,
-          critical: (data.critical || 0) + (data.high || 0),
+          critical: data.critical || 0,
+          high: data.high || 0,
           medium: data.medium || 0,
           dast: data.dast || 0,
           code: data.code || 0,

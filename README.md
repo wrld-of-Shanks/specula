@@ -120,7 +120,9 @@ Specula has undergone a **comprehensive security audit** covering:
 
 ## ⚙️ Environment Variables
 
-| Variable | Required | Description |
+Required (✅) vs Optional (❌)
+
+| Variable | | Description |
 |----------|----------|-------------|
 | `MONGO_USERNAME` | ✅ | MongoDB user |
 | `MONGO_PASSWORD` | ✅ | MongoDB password |

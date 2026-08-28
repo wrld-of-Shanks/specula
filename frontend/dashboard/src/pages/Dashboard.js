@@ -470,13 +470,56 @@ function Dashboard() {
             }}>
               Scaned Results
             </h3>
-            {result && (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px'
-              }}>
-                {Object.entries(result).map(([key, value]) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {result.findings ? (
+                result.findings.length > 0 ? result.findings.map((f, idx) => (
+                  <div key={f.event_id || idx} style={{
+                    background: 'rgba(0,0,0,0.3)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    border: `1px solid ${f.severity === 'critical' ? 'rgba(239,68,68,0.4)' : f.severity === 'high' ? 'rgba(251,146,60,0.4)' : f.severity === 'medium' ? 'rgba(234,179,8,0.4)' : 'rgba(255,255,255,0.08)'}`
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', color: 'white', fontWeight: '600' }}>
+                        Finding #{idx + 1}
+                      </span>
+                      <span style={{
+                        fontSize: '10px',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        background: f.severity === 'critical' ? 'rgba(239,68,68,0.3)' : f.severity === 'high' ? 'rgba(251,146,60,0.3)' : f.severity === 'medium' ? 'rgba(234,179,8,0.3)' : 'rgba(255,255,255,0.1)',
+                        color: 'white',
+                        textTransform: 'uppercase'
+                      }}>
+                        {f.severity || 'info'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '4px' }}>
+                      <strong>{f.check_name || f.prediction || 'Unknown'}</strong>
+                    </div>
+                    {f.explanation?.what && (
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>
+                        {f.explanation.what}
+                      </div>
+                    )}
+                    {f.explanation?.location && (
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+                        {f.explanation.location}
+                      </div>
+                    )}
+                    {f.explanation?.reference && (
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                        {f.explanation.reference.cwe} | {f.explanation.reference.owasp}
+                      </div>
+                    )}
+                  </div>
+                )) : (
+                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', textAlign: 'center', padding: '20px' }}>
+                    No findings detected
+                  </div>
+                )
+              ) : (
+                Object.entries(result).filter(([k]) => !['findings', 'target_url', 'mode', 'finding_count'].includes(k)).map(([key, value]) => (
                   <div key={key}>
                     <div style={{
                       fontSize: '11px',
@@ -502,49 +545,31 @@ function Dashboard() {
                       {Array.isArray(value) ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                           {value.map((item, idx) => (
-                            <div key={idx}>
-                              <div style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                borderRadius: '6px',
-                                padding: '10px',
-                                border: '1px solid rgba(255,255,255,0.08)'
-                              }}>
-                                <div style={{
-                                  fontSize: '10px',
-                                  color: 'white',
-                                  marginBottom: '6px',
-                                  borderBottom: '1px solid rgba(255,255,255,0.06)',
-                                  paddingBottom: '4px'
-                                }}>
-                                  Finding #{idx + 1}
-                                </div>
-                                <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                                  {JSON.stringify(item, null, 2)}
-                                </pre>
+                            <div key={idx} style={{
+                              background: 'rgba(255,255,255,0.05)',
+                              borderRadius: '6px',
+                              padding: '10px',
+                              border: '1px solid rgba(255,255,255,0.08)'
+                            }}>
+                              <div style={{ fontSize: '10px', color: 'white', marginBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '4px' }}>
+                                #{idx + 1}
                               </div>
-                              {idx < value.length - 1 && (
-                                <div style={{
-                                  height: '1px',
-                                  background: 'rgba(255,255,255,0.08)',
-                                  marginTop: '10px'
-                                }} />
-                              )}
+                              <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                                {typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)}
+                              </pre>
                             </div>
                           ))}
                         </div>
+                      ) : typeof value === 'object' ? (
+                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{JSON.stringify(value, null, 2)}</pre>
                       ) : (
-                        typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
+                        String(value)
                       )}
                     </div>
-                    <div style={{
-                      height: '1px',
-                      background: 'rgba(255,255,255,0.08)',
-                      marginTop: '12px'
-                    }} />
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </div>
         )}
       </main>

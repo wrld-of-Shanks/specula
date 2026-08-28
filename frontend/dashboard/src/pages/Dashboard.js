@@ -23,7 +23,7 @@ function Dashboard() {
   const detectedType = detectType(input);
 
   useEffect(() => {
-    loadStats();
+    // Stats start at 0 and update after each scan
   }, []);
 
   const loadStats = async () => {

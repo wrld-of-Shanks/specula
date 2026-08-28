@@ -78,10 +78,12 @@ async function cloneRepo(repoUrl, destDir) {
     throw new Error(`Clone rejected: only github.com is allowed (got ${parsed.hostname})`);
   }
   const token = getGithubToken();
-  const authHeader = `Authorization: Basic ${Buffer.from('x-access-token:' + token).toString('base64')}`;
-  await execFileAsync('git', ['-c', `http.extraHeader=${authHeader}`, 'clone', '--depth', '1', '--single-branch', repoUrl, destDir], {
-    timeout: 60000
-  });
+  const args = ['clone', '--depth', '1', '--single-branch', repoUrl, destDir];
+  if (token) {
+    const authHeader = `Authorization: Basic ${Buffer.from('x-access-token:' + token).toString('base64')}`;
+    args.unshift('-c', `http.extraHeader=${authHeader}`);
+  }
+  await execFileAsync('git', args, { timeout: 60000 });
 }
 
 function getGithubToken() {

@@ -259,33 +259,33 @@ function Dashboard() {
             <div style={{ display: 'flex', gap: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ color: 'white', fontSize: '13px' }}>Total</span>
-                <span style={{ color: 'white', fontWeight: '600', fontSize: '14px' }}>({stats.total})</span>
+                <span style={{ color: 'white', fontSize: '13px' }}>({stats.total})</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ color: '#ef4444', fontSize: '13px' }}>Critical</span>
-                <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '14px' }}>({stats.critical})</span>
+                <span style={{ color: 'white', fontSize: '13px' }}>Critical</span>
+                <span style={{ color: 'white', fontSize: '13px' }}>({stats.critical})</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ color: '#fb923c', fontSize: '13px' }}>High</span>
-                <span style={{ color: '#fb923c', fontWeight: '600', fontSize: '14px' }}>({stats.high})</span>
+                <span style={{ color: 'white', fontSize: '13px' }}>High</span>
+                <span style={{ color: 'white', fontSize: '13px' }}>({stats.high})</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ color: '#eab308', fontSize: '13px' }}>Medium</span>
-                <span style={{ color: '#eab308', fontWeight: '600', fontSize: '14px' }}>({stats.medium})</span>
+                <span style={{ color: 'white', fontSize: '13px' }}>Medium</span>
+                <span style={{ color: 'white', fontSize: '13px' }}>({stats.medium})</span>
               </div>
             </div>
             <div style={{ display: 'flex', gap: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ color: 'white', fontSize: '13px' }}>DAST</span>
-                <span style={{ color: 'white', fontWeight: '600', fontSize: '14px' }}>({stats.dast})</span>
+                <span style={{ color: 'white', fontSize: '13px' }}>({stats.dast})</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ color: 'white', fontSize: '13px' }}>Code</span>
-                <span style={{ color: 'white', fontWeight: '600', fontSize: '14px' }}>({stats.code})</span>
+                <span style={{ color: 'white', fontSize: '13px' }}>({stats.code})</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ color: 'white', fontSize: '13px' }}>Repo</span>
-                <span style={{ color: 'white', fontWeight: '600', fontSize: '14px' }}>({stats.repo})</span>
+                <span style={{ color: 'white', fontSize: '13px' }}>({stats.repo})</span>
               </div>
             </div>
           </div>
@@ -473,7 +473,7 @@ function Dashboard() {
                     background: 'rgba(0,0,0,0.3)',
                     borderRadius: '8px',
                     padding: '12px',
-                    border: `1px solid ${f.severity === 'critical' ? 'rgba(239,68,68,0.4)' : f.severity === 'high' ? 'rgba(251,146,60,0.4)' : f.severity === 'medium' ? 'rgba(234,179,8,0.4)' : 'rgba(255,255,255,0.08)'}`
+                    border: `1px solid ${f.severity === 'critical' ? 'rgba(168,85,247,0.4)' : f.severity === 'high' ? 'rgba(124,58,237,0.4)' : f.severity === 'medium' ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.08)'}`
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                       <span style={{ fontSize: '11px', color: 'white', fontWeight: '600' }}>
@@ -483,7 +483,7 @@ function Dashboard() {
                         fontSize: '10px',
                         padding: '2px 6px',
                         borderRadius: '4px',
-                        background: f.severity === 'critical' ? 'rgba(239,68,68,0.3)' : f.severity === 'high' ? 'rgba(251,146,60,0.3)' : f.severity === 'medium' ? 'rgba(234,179,8,0.3)' : 'rgba(255,255,255,0.1)',
+                        background: f.severity === 'critical' ? 'rgba(168,85,247,0.3)' : f.severity === 'high' ? 'rgba(124,58,237,0.3)' : f.severity === 'medium' ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.1)',
                         color: 'white',
                         textTransform: 'uppercase'
                       }}>
@@ -527,7 +527,7 @@ function Dashboard() {
                       background: 'rgba(0,0,0,0.3)',
                       borderRadius: '8px',
                       padding: '12px',
-                      border: `1px solid ${result.severity === 'critical' ? 'rgba(239,68,68,0.4)' : result.severity === 'high' ? 'rgba(251,146,60,0.4)' : result.severity === 'medium' ? 'rgba(234,179,8,0.4)' : 'rgba(255,255,255,0.08)'}`
+                      border: `1px solid ${result.severity === 'critical' ? 'rgba(168,85,247,0.4)' : result.severity === 'high' ? 'rgba(124,58,237,0.4)' : result.severity === 'medium' ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.08)'}`
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                         <span style={{ fontSize: '11px', color: 'white', fontWeight: '600' }}>
@@ -537,7 +537,7 @@ function Dashboard() {
                           fontSize: '10px',
                           padding: '2px 6px',
                           borderRadius: '4px',
-                          background: result.severity === 'critical' ? 'rgba(239,68,68,0.3)' : result.severity === 'high' ? 'rgba(251,146,60,0.3)' : result.severity === 'medium' ? 'rgba(234,179,8,0.3)' : 'rgba(255,255,255,0.1)',
+                          background: result.severity === 'critical' ? 'rgba(168,85,247,0.3)' : result.severity === 'high' ? 'rgba(124,58,237,0.3)' : result.severity === 'medium' ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.1)',
                           color: 'white',
                           textTransform: 'uppercase'
                         }}>

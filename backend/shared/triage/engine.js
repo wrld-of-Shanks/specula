@@ -39,8 +39,8 @@ class TriageEngine {
 
   determineSeverity(confidence, result) {
     if (confidence >= 0.95) return 'critical';
-    if (confidence >= 0.85) return 'high';
-    if (confidence >= 0.70) return 'medium';
+    if (confidence >= 0.80) return 'high';
+    if (confidence >= 0.60) return 'medium';
     return 'low';
   }
 

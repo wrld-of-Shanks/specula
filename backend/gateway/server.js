@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const crypto = require('crypto');
 const WebSocket = require('ws');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -22,6 +23,8 @@ const { TriageEngine } = require('../shared/triage/engine');
 const log = createChildLogger('gateway');
 
 const app = express();
+app.set('trust proxy', true);
+
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
@@ -66,6 +69,14 @@ app.use('/api/reports', apiKeyAuth, reportRoutes());
 app.use('/api/notifications', apiKeyAuth, notificationRoutes());
 
 wss.on('connection', (ws, req) => {
+  const apiKey = req.headers['x-api-key'] || new URL(req.url, 'http://localhost').searchParams.get('apiKey');
+  const validApiKey = process.env.API_KEY;
+
+  if (!apiKey || !validApiKey || apiKey.length !== validApiKey.length ||
+      !crypto.timingSafeEqual(Buffer.from(apiKey), Buffer.from(validApiKey))) {
+    ws.close(1008, 'Unauthorized');
+    return;
+  }
   log.info({ requestId: req.id }, 'Client connected to WebSocket');
   ws.on('close', () => log.info('Client disconnected'));
 });

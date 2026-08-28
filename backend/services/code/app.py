@@ -7,7 +7,7 @@ from utils.explanation_kb import ExplanationKB
 from repo_scanner import start_repo_scan, get_repo_scan, get_all_repo_scans
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=['http://localhost:3000', 'http://gateway:3000'])
 
 MODELS_DIR = os.path.join(os.path.dirname(__file__), 'models', 'weights')
 
@@ -66,7 +66,8 @@ def scan():
             'fix_confidence': fix_confidence
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Scan failed: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 
 @app.route('/fix', methods=['POST'])
@@ -87,7 +88,8 @@ def fix():
             'original_code': code
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Fix generation failed: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 
 @app.route('/train', methods=['POST'])
@@ -107,7 +109,8 @@ def train():
 
         return jsonify({'status': 'training_complete', 'result': result})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Training failed: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 
 @app.route('/repo-scan', methods=['GET'])
@@ -116,7 +119,8 @@ def repo_scan_list():
         jobs = get_all_repo_scans()
         return jsonify(jobs)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Failed to list scan jobs: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 
 @app.route('/repo-scan', methods=['POST'])
@@ -131,7 +135,8 @@ def repo_scan_start():
         job_id = start_repo_scan(repo_url, code_service_url)
         return jsonify({'job_id': job_id, 'status': 'cloning'}), 202
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Failed to start repo scan: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 
 @app.route('/repo-scan/<job_id>', methods=['GET'])
@@ -142,7 +147,14 @@ def repo_scan_status(job_id):
             return jsonify({'error': 'Job not found'}), 404
         return jsonify(result)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Failed to get scan status: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    app.logger.error(f"Unhandled exception: {str(e)}")
+    return jsonify({'error': 'Internal server error'}), 500
 
 
 if __name__ == '__main__':

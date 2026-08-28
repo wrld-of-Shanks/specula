@@ -73,8 +73,13 @@ function chunkCode(code, chunkSize = CHUNK_SIZE, overlap = CHUNK_OVERLAP) {
 }
 
 async function cloneRepo(repoUrl, destDir) {
-  const authUrl = repoUrl.replace('https://github.com/', `https://${getGithubToken()}@github.com/`);
-  await execFileAsync('git', ['clone', '--depth', '1', '--single-branch', authUrl, destDir], {
+  const parsed = new URL(repoUrl);
+  if (parsed.hostname !== 'github.com') {
+    throw new Error(`Clone rejected: only github.com is allowed (got ${parsed.hostname})`);
+  }
+  const token = getGithubToken();
+  const authHeader = `Authorization: Basic ${Buffer.from('x-access-token:' + token).toString('base64')}`;
+  await execFileAsync('git', ['-c', `http.extraHeader=${authHeader}`, 'clone', '--depth', '1', '--single-branch', repoUrl, destDir], {
     timeout: 60000
   });
 }
@@ -83,11 +88,11 @@ function getGithubToken() {
   try {
     const { execSync } = require('child_process');
     const token = execSync('security find-generic-password -s "github.com" -w 2>/dev/null || echo ""', { encoding: 'utf-8' }).trim();
-    if (token) return `oauth2:${token}`;
+    if (token) return token;
   } catch {}
   const envToken = process.env.GITHUB_TOKEN;
-  if (envToken) return `oauth2:${envToken}`;
-  return 'x-access-token:';
+  if (envToken) return envToken;
+  return '';
 }
 
 function collectSourceFiles(dir) {

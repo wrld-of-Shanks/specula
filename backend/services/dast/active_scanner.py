@@ -22,6 +22,7 @@ authorized_targets = db["authorized_targets"]
 
 REQUEST_TIMEOUT = 8
 USER_AGENT = "Specula-DAST/1.0 (authorized-scan)"
+MAX_ACTIVE_REQUESTS = 50
 
 
 class NotAuthorizedError(Exception):
@@ -29,7 +30,10 @@ class NotAuthorizedError(Exception):
 
 
 def is_authorized(target_url: str) -> bool:
-    host = urlparse(target_url).hostname
+    parsed = urlparse(target_url)
+    if parsed.scheme not in ('http', 'https'):
+        return False
+    host = parsed.hostname
     if host in ('localhost', '127.0.0.1', '0.0.0.0'):
         return True
     return authorized_targets.find_one({"target": host}) is not None
@@ -44,7 +48,12 @@ def require_authorization(target_url: str):
 # Baseline / probe diffing core
 # ---------------------------------------------------------------------------
 
+_request_count = 0
+
+
 def _get(url, params=None):
+    global _request_count
+    _request_count += 1
     return requests.get(
         url, params=params, timeout=REQUEST_TIMEOUT,
         headers={"User-Agent": USER_AGENT}, allow_redirects=False,
@@ -191,13 +200,28 @@ def run_active_scan(target_url: str, params_to_test: list):
     Caller is responsible for supplying real endpoints/params discovered
     from the passive crawl step — this module doesn't crawl on its own.
     """
+    global _request_count
+    _request_count = 0
+
     if not is_authorized(target_url):
         return {"skipped_active": True, "reason": "Target not authorized for active scanning", "findings": []}
 
     findings = []
     findings += discover_endpoints(target_url)
+
+    if _request_count >= MAX_ACTIVE_REQUESTS:
+        return {"skipped_active": False, "findings": findings, "warning": "Request limit reached during endpoint discovery"}
+
     for entry in params_to_test:
+        if _request_count >= MAX_ACTIVE_REQUESTS:
+            break
         findings += check_sqli(target_url, entry["endpoint"], entry["param"])
+        if _request_count >= MAX_ACTIVE_REQUESTS:
+            break
         findings += check_xss(target_url, entry["endpoint"], entry["param"])
 
-    return {"skipped_active": False, "findings": findings}
+    warning = None
+    if _request_count >= MAX_ACTIVE_REQUESTS:
+        warning = f"Scan stopped after {MAX_ACTIVE_REQUESTS} requests to protect target"
+
+    return {"skipped_active": False, "findings": findings, "request_count": _request_count, "warning": warning}

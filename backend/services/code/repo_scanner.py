@@ -5,6 +5,8 @@ Runs in a background thread so the HTTP response returns immediately.
 import os
 import re
 import json
+import uuid
+import base64
 import tempfile
 import threading
 import subprocess
@@ -47,23 +49,26 @@ def _get_github_token():
         )
         token = result.stdout.strip()
         if token:
-            return f'oauth2:{token}'
+            return token
     except Exception:
         pass
     env_token = os.environ.get('GITHUB_TOKEN', '')
     if env_token:
-        return f'oauth2:{env_token}'
-    return 'x-access-token:'
+        return env_token
+    return ''
 
 
 def _clone_with_timeout(repo_url, dest_dir):
     parsed = urlparse(repo_url)
+    if parsed.hostname not in ('github.com',):
+        return False, f'Clone rejected: only github.com is allowed (got {parsed.hostname})'
+
     token = _get_github_token()
-    auth_url = f'{parsed.scheme}://{token}@{parsed.netloc}{parsed.path}'
+    auth_header = f"Authorization: Basic {base64.b64encode(f'x-access-token:{token}'.encode()).decode()}"
 
     try:
         result = subprocess.run(
-            ['git', 'clone', '--depth', '1', '--single-branch', auth_url, dest_dir],
+            ['git', '-c', f'http.extraHeader={auth_header}', 'clone', '--depth', '1', '--single-branch', repo_url, dest_dir],
             capture_output=True, text=True, timeout=CLONE_TIMEOUT
         )
         if result.returncode != 0:
@@ -234,7 +239,7 @@ def _run_scan(job_id, repo_url, code_service_url):
 
 def start_repo_scan(repo_url, code_service_url='http://localhost:5002'):
     """Start a background repo scan. Returns (job_id, status_code)."""
-    job_id = f'repo-{int(time.time() * 1000)}'
+    job_id = f'repo-{uuid.uuid4().hex[:16]}'
     job = {
         '_id': job_id,
         'repo_url': repo_url,
@@ -245,6 +250,7 @@ def start_repo_scan(repo_url, code_service_url='http://localhost:5002'):
         'findings': [],
         'error': None,
         'started_at': time.time(),
+        'created_at': time.time(),
         'completed_at': None
     }
 
@@ -303,3 +309,34 @@ def get_all_repo_scans():
         }
         for j in sorted(jobs, key=lambda x: x.get('started_at', 0), reverse=True)
     ]
+
+
+# ---------------------------------------------------------------------------
+# TTL cleanup — removes completed jobs older than 1 hour every 10 minutes
+# ---------------------------------------------------------------------------
+
+_JOB_TTL_SECONDS = 3600
+_CLEANUP_INTERVAL_SECONDS = 600
+
+
+def _cleanup_jobs():
+    while True:
+        time.sleep(_CLEANUP_INTERVAL_SECONDS)
+        try:
+            now = time.time()
+            with _jobs_lock:
+                to_delete = [
+                    jid for jid, job in _jobs.items()
+                    if job.get('completed_at') and (now - job['completed_at']) > _JOB_TTL_SECONDS
+                ]
+                for jid in to_delete:
+                    del _jobs[jid]
+            if to_delete:
+                import logging
+                logging.getLogger('repo_scanner').info(f'Cleaned up {len(to_delete)} expired scan jobs')
+        except Exception:
+            pass
+
+
+_cleanup_thread = threading.Thread(target=_cleanup_jobs, daemon=True)
+_cleanup_thread.start()

@@ -1,4 +1,5 @@
-process.env.API_KEY = process.env.API_KEY || 'test-key';
+const TEST_API_KEY = 'test-key';
+process.env.API_KEY = TEST_API_KEY;
 
 const { apiKeyAuth } = require('../shared/middleware/auth');
 const { createTestApp, startServer, stopServer, makeRequest } = require('./helpers');
@@ -36,7 +37,7 @@ describe('Auth Middleware', () => {
     app.get('/test', (req, res) => res.json({ ok: true }));
 
     ({ server, port } = await startServer(app));
-    const result = await makeRequest(port, 'GET', '/test', null, { 'X-Api-Key': 'test-key' });
+    const result = await makeRequest(port, 'GET', '/test', null, { 'X-Api-Key': TEST_API_KEY });
     expect(result.status).toBe(200);
     expect(result.body.ok).toBe(true);
   });

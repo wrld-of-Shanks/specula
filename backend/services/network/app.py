@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('horus-nids')
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=['http://localhost:3000', 'http://gateway:3000'])
 
 MODELS_DIR = os.path.join(os.path.dirname(__file__), 'models', 'weights')
 
@@ -171,6 +171,12 @@ def generate_explanation(prediction, confidence, unsupervised_result):
         'anomaly_score': unsupervised_result['anomaly_score'],
         'override_reason': 'unsupervised_anomaly' if is_novel else None
     }
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    app.logger.error(f"Unhandled exception: {str(e)}")
+    return jsonify({'error': 'Internal server error'}), 500
 
 
 if __name__ == '__main__':

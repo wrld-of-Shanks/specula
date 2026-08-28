@@ -10,7 +10,7 @@ from flask_cors import CORS
 from active_scanner import run_active_scan, NotAuthorizedError
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=['http://localhost:3000', 'http://gateway:3000'])
 
 PASSIVE_TIMEOUT = 10
 ACTIVE_TIMEOUT = 15
@@ -779,6 +779,12 @@ def scan():
         'finding_count': len(findings),
         'findings': findings
     })
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    app.logger.error(f"Unhandled exception: {str(e)}")
+    return jsonify({'error': 'Internal server error'}), 500
 
 
 if __name__ == '__main__':

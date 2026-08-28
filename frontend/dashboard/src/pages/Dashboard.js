@@ -511,59 +511,65 @@ function Dashboard() {
                   </div>
                 )) : (
                   <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', textAlign: 'center', padding: '20px' }}>
-                    No findings detected
+                    No security issues found for this target
                   </div>
                 )
               ) : (
-                Object.entries(result).filter(([k]) => !['findings', 'target_url', 'mode', 'finding_count'].includes(k)).map(([key, value]) => (
-                  <div key={key}>
-                    <div style={{
-                      fontSize: '11px',
-                      color: 'rgba(255,255,255,0.5)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      marginBottom: '4px'
-                    }}>
-                      {key.replace(/_/g, ' ')}
-                    </div>
+                <>
+                  {/* Code scan result - show prediction card */}
+                  {result.prediction && (
                     <div style={{
                       background: 'rgba(0,0,0,0.3)',
                       borderRadius: '8px',
-                      padding: '10px 12px',
-                      color: 'white',
-                      fontSize: '12px',
-                      fontFamily: 'monospace',
-                      wordBreak: 'break-word',
-                      border: '1px solid rgba(255,255,255,0.05)',
-                      maxHeight: '400px',
-                      overflowY: 'auto'
+                      padding: '12px',
+                      border: `1px solid ${result.severity === 'critical' ? 'rgba(239,68,68,0.4)' : result.severity === 'high' ? 'rgba(251,146,60,0.4)' : result.severity === 'medium' ? 'rgba(234,179,8,0.4)' : 'rgba(255,255,255,0.08)'}`
                     }}>
-                      {Array.isArray(value) ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          {value.map((item, idx) => (
-                            <div key={idx} style={{
-                              background: 'rgba(255,255,255,0.05)',
-                              borderRadius: '6px',
-                              padding: '10px',
-                              border: '1px solid rgba(255,255,255,0.08)'
-                            }}>
-                              <div style={{ fontSize: '10px', color: 'white', marginBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '4px' }}>
-                                #{idx + 1}
-                              </div>
-                              <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                                {typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)}
-                              </pre>
-                            </div>
-                          ))}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '11px', color: 'white', fontWeight: '600' }}>
+                          {result.prediction === 'not_vulnerable' ? 'Clean' : 'Vulnerability Detected'}
+                        </span>
+                        <span style={{
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: result.severity === 'critical' ? 'rgba(239,68,68,0.3)' : result.severity === 'high' ? 'rgba(251,146,60,0.3)' : result.severity === 'medium' ? 'rgba(234,179,8,0.3)' : 'rgba(255,255,255,0.1)',
+                          color: 'white',
+                          textTransform: 'uppercase'
+                        }}>
+                          {result.severity || 'safe'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '13px', color: 'white', marginBottom: '4px' }}>
+                        <strong>{result.prediction.replace(/_/g, ' ')}</strong>
+                        {result.confidence && (
+                          <span style={{ color: 'rgba(255,255,255,0.5)', marginLeft: '8px' }}>
+                            ({Math.round(result.confidence * 100)}% confidence)
+                          </span>
+                        )}
+                      </div>
+                      {result.explanation?.what && (
+                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>
+                          {result.explanation.what}
                         </div>
-                      ) : typeof value === 'object' ? (
-                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{JSON.stringify(value, null, 2)}</pre>
-                      ) : (
-                        String(value)
+                      )}
+                      {result.explanation?.location && (
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+                          {result.explanation.location}
+                        </div>
+                      )}
+                      {result.explanation?.reference && (
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                          {result.explanation.reference.cwe} | {result.explanation.reference.owasp}
+                        </div>
+                      )}
+                      {result.explanation?.remediation?.guidance && (
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '6px', fontStyle: 'italic' }}>
+                          Fix: {result.explanation.remediation.guidance}
+                        </div>
                       )}
                     </div>
-                  </div>
-                ))
+                  )}
+                </>
               )}
             </div>
           </div>

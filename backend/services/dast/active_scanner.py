@@ -176,7 +176,33 @@ def discover_endpoints(target_url: str):
 # Finding shape (matches the explanation format used across all modules)
 # ---------------------------------------------------------------------------
 
+ACTIVE_REMEDIATION = {
+    'sqli_error_disclosure': 'Use parameterized queries or prepared statements. Never concatenate user input into SQL strings. Disable detailed database error messages in production.',
+    'sqli_behavior_change': 'Use parameterized queries or prepared statements. Validate and sanitize all user input before including it in queries.',
+    'reflected_xss': 'Encode all output data context-appropriately (HTML entity, JavaScript, URL encoding). Use frameworks that auto-escape by default. Implement Content-Security-Policy header.',
+    'idor': 'Implement proper authorization checks for every object access. Verify the authenticated user owns or has permission to access the requested resource. Use indirect references (UUIDs) instead of sequential IDs.',
+    'exposed_path': 'Restrict access to administrative and internal paths at the web server level. Use authentication and network-level controls to limit access to sensitive directories.',
+}
+
+CWE_MAP = {
+    'sqli_error_disclosure': {'cwe': 'CWE-89', 'owasp': 'A03:2021 - Injection'},
+    'sqli_behavior_change': {'cwe': 'CWE-89', 'owasp': 'A03:2021 - Injection'},
+    'reflected_xss': {'cwe': 'CWE-79', 'owasp': 'A03:2021 - Injection'},
+    'idor': {'cwe': 'CWE-639', 'owasp': 'A01:2021 - Broken Access Control'},
+    'exposed_path': {'cwe': 'CWE-538', 'owasp': 'A01:2021 - Broken Access Control'},
+}
+
+SEVERITY_MAP = {
+    'sqli_error_disclosure': 'critical',
+    'sqli_behavior_change': 'high',
+    'reflected_xss': 'high',
+    'idor': 'high',
+    'exposed_path': 'info',
+}
+
+
 def _finding(check_type, location, param, confidence, what, evidence):
+    ref = CWE_MAP.get(check_type, {'cwe': 'N/A', 'owasp': 'N/A'})
     return {
         "event_type": "dast",
         "mode": "active",
@@ -184,9 +210,19 @@ def _finding(check_type, location, param, confidence, what, evidence):
         "location": location,
         "parameter": param,
         "confidence": confidence,
-        "what": what,
+        "severity": SEVERITY_MAP.get(check_type, 'medium'),
+        "certainty_type": "confirmed" if confidence == 1.0 else "inferred",
+        "explanation": {
+            "what": what,
+            "why_it_matters": what,
+            "location": f"{location} (parameter: {param})" if param else location,
+            "reference": ref,
+            "remediation": {
+                "guidance": ACTIVE_REMEDIATION.get(check_type, 'Review the specific vulnerability guidance.'),
+                "suggested_code_fix": None
+            }
+        },
         "evidence": evidence,
-        "certainty": "confirmed" if confidence == 1.0 else None,
     }
 
 

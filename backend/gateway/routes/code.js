@@ -14,8 +14,25 @@ module.exports = function(codeService, triageEngine, wss) {
    * /api/code/scan:
    *   post:
    *     summary: Scan source code for vulnerabilities (SAST)
-   *     description: Submits a snippet of source code to the rule-based classifier, applies
+   *     description: |
+   *       Submits a snippet of source code to the rule-based classifier, applies
    *       the triage engine, and persists the result as a `code` event.
+   *
+   *       **Detection Rules:**
+   *       - SQL Injection (CWE-89): String concatenation/f-string/.format() in SQL queries
+   *       - XSS (CWE-79): innerHTML, document.write, res.send() with concatenation
+   *       - Command Injection (CWE-78): os.system, subprocess with concatenation/f-strings
+   *       - Hardcoded Credentials (CWE-798): Direct password/api_key assignments
+   *       - Path Traversal (CWE-22): open(), readFile with user-controlled paths
+   *       - Insecure Deserialization (CWE-502): pickle.loads, yaml.load without SafeLoader
+   *
+   *       **Triage Rules:**
+   *       - Confidence ≥ 0.95 → severity=critical, status=auto_flagged
+   *       - Confidence ≥ 0.80 → severity=high, status=auto_flagged
+   *       - Confidence ≥ 0.60 → severity=medium, status=human_review
+   *       - Confidence < 0.60 → severity=low, status=ignored
+   *
+   *       **Rate Limit:** 10 requests/minute
    *     tags: [Code (SAST)]
    *     security:
    *       - ApiKeyAuth: []
@@ -29,42 +46,132 @@ module.exports = function(codeService, triageEngine, wss) {
    *             properties:
    *               code:
    *                 type: string
+   *                 minLength: 1
    *                 maxLength: 50000
-   *                 description: Source code snippet to analyze
+   *                 description: |
+   *                   Source code snippet to analyze. Supports Python, JavaScript, TypeScript,
+   *                   Java, Go, C, C++, Ruby, PHP, and other common languages.
+   *                 example: |
+   *                   username = input('user')
+   *                   query = 'SELECT * FROM users WHERE name = "' + username + '"'
    *               source:
    *                 type: string
-   *                 description: Optional label for the scan source
+   *                 maxLength: 200
+   *                 description: Optional label for the scan source (e.g., "editor", "ci-pipeline")
+   *                 example: manual_scan
    *             example:
-   *               code: "username = input('user')\nquery = 'SELECT * FROM users WHERE name = \"' + username + '\"'"
+   *               code: |
+   *                 username = input('user')
+   *                 query = 'SELECT * FROM users WHERE name = "' + username + '"'
+   *               source: manual_scan
    *     responses:
    *       '200':
-   *         description: Scan completed
+   *         description: Scan completed successfully
    *         content:
    *           application/json:
    *             schema:
-   *               type: object
-   *               properties:
-   *                 event_id: { type: string }
-   *                 prediction:
-   *                   type: string
-   *                   enum: [sql_injection, xss, command_injection, hardcoded_credentials, path_traversal, insecure_deserialization, not_vulnerable]
-   *                 confidence: { type: number, nullable: true }
-   *                 certainty_type: { type: string }
-   *                 severity:
-   *                   type: string
-   *                   enum: [critical, high, medium, low, info]
-   *                 status:
-   *                   type: string
-   *                   enum: [auto_flagged, human_review, ignored]
-   *                 explanation: { type: object, nullable: true }
-   *                 suggested_fix: { type: string, nullable: true }
-   *                 top_predictions: { type: array, items: { type: object } }
+   *               $ref: '#/components/schemas/CodeScanResult'
+   *             examples:
+   *               sql_injection:
+   *                 summary: SQL Injection detected
+   *                 value:
+   *                   event_id: "507f1f77bcf86cd799439011"
+   *                   prediction: "sql_injection"
+   *                   confidence: 0.92
+   *                   certainty_type: "inferred"
+   *                   severity: "high"
+   *                   status: "auto_flagged"
+   *                   explanation:
+   *                     what: "SQL query uses string concatenation with user input"
+   *                     why: "Allows SQL injection attacks that can read/modify/delete data"
+   *                     where: "Line 2 in submitted code"
+   *                     reference:
+   *                       cwe: "CWE-89"
+   *                       owasp: "A03:2021-Injection"
+   *                     remediation:
+   *                       guidance: "Use parameterized queries instead of string concatenation"
+   *                       suggested_code_fix: "cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))"
+   *                   suggested_fix: "cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))"
+   *                   top_predictions:
+   *                     - class: "sql_injection"
+   *                       cwe: "CWE-89"
+   *                       confidence: 0.92
+   *                     - class: "not_vulnerable"
+   *                       cwe: "N/A"
+   *                       confidence: 0.05
+   *                     - class: "xss"
+   *                       cwe: "CWE-79"
+   *                       confidence: 0.03
+   *               not_vulnerable:
+   *                 summary: No vulnerability detected
+   *                 value:
+   *                   event_id: "507f1f77bcf86cd799439012"
+   *                   prediction: "not_vulnerable"
+   *                   confidence: 0.95
+   *                   certainty_type: "inferred"
+   *                   severity: "critical"
+   *                   status: "auto_flagged"
+   *                   explanation:
+   *                     what: "No vulnerability detected in the submitted code"
+   *                     why: "Code follows secure coding practices"
+   *                     where: "N/A"
+   *                     reference:
+   *                       cwe: "N/A"
+   *                       owasp: "N/A"
+   *                     remediation:
+   *                       guidance: "No specific remediation guidance available."
+   *                       suggested_code_fix: null
+   *                   suggested_fix: null
+   *                   top_predictions:
+   *                     - class: "not_vulnerable"
+   *                       cwe: "N/A"
+   *                       confidence: 0.95
    *       '400':
-   *         $ref: '#/components/schemas/ValidationError'
+   *         description: Validation error — missing or invalid request body
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ValidationError'
+   *             examples:
+   *               missing_code:
+   *                 summary: Missing code field
+   *                 value:
+   *                   error: "Validation failed"
+   *                   details: ["\"code\" is required"]
+   *               empty_code:
+   *                 summary: Empty code string
+   *                 value:
+   *                   error: "Validation failed"
+   *                   details: ["\"code\" is not allowed to be empty"]
+   *               code_too_long:
+   *                 summary: Code exceeds 50000 character limit
+   *                 value:
+   *                   error: "Validation failed"
+   *                   details: ["\"code\" length must be less than or equal to 50000 characters"]
+   *       '429':
+   *         description: Rate limit exceeded (10 requests/minute for code scans)
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/RateLimitError'
+   *             example:
+   *               error: "Too many requests, please try again later"
    *       '502':
-   *         $ref: '#/components/schemas/Error'
+   *         description: Code service is unreachable or returned an error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   *             example:
+   *               error: "Code service unavailable"
    *       '500':
-   *         $ref: '#/components/schemas/Error'
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   *             example:
+   *               error: "Internal server error"
    */
   router.post('/scan', scanLimiter, validate(codeScanSchema), async (req, res) => {
     try {

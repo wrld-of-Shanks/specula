@@ -508,6 +508,11 @@ function Dashboard() {
                         {f.explanation.reference.cwe} | {f.explanation.reference.owasp}
                       </div>
                     )}
+                    {f.explanation?.remediation?.guidance && (
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '6px', fontStyle: 'italic', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '6px' }}>
+                        Fix: {f.explanation.remediation.guidance}
+                      </div>
+                    )}
                   </div>
                 )) : (
                   <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', textAlign: 'center', padding: '20px' }}>
